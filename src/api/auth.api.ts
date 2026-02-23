@@ -1,4 +1,4 @@
-import { http } from './http';
+import { http } from './http.api';
 import type { ILoginPayload, IRegisterPayload } from '../interfaces/auth.interface'
 
 export async function apiLogin(payload: ILoginPayload) {

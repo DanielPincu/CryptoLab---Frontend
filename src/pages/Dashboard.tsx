@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import axios from 'axios'
+import { http } from '../api/http.api'
 import type { IUser } from '../interfaces/user.interface'
 import type { IAccount } from '../interfaces/account.interface'
 
@@ -17,14 +17,9 @@ export default function Dashboard() {
       return
     }
 
-    const api = axios.create({
-      baseURL: 'http://localhost:3000',
-      headers: { Authorization: `Bearer ${token}` }
-    })
-
     Promise.all([
-      api.get('/user/me'),
-      api.get('/account/me')
+      http.get('/user/me'),
+      http.get('/account/me')
     ])
       .then(([meRes, accRes]) => {
         setMe(meRes.data?.user ?? meRes.data)

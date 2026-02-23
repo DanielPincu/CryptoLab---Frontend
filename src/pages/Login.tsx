@@ -1,26 +1,52 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSession } from '../auth/Session';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, isLoading } = useSession();
+  const { login } = useSession()
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState<boolean>(() => Boolean(localStorage.getItem('rememberEmail')))
+  const [rememberPassword, setRememberPassword] = useState<boolean>(() => Boolean(localStorage.getItem('rememberPassword')))
+
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberEmail')
+    if (rememberedEmail) setEmail(rememberedEmail)
+
+    const rememberedPassword = localStorage.getItem('rememberPassword')
+    if (rememberedPassword) setPassword(rememberedPassword)
+  }, [])
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault()
+    setError(null)
+    setSubmitting(true)
 
     try {
-      await login(email, password);
-      navigate('/dashboard');
+      if (rememberMe) {
+        localStorage.setItem('rememberEmail', email)
+      } else {
+        localStorage.removeItem('rememberEmail')
+      }
+
+      if (rememberPassword) {
+        localStorage.setItem('rememberPassword', password)
+      } else {
+        localStorage.removeItem('rememberPassword')
+      }
+      await login(email, password)
+      navigate('/dashboard')
     } catch (err: unknown) {
       const msg =
-        err instanceof Error ? err.message : 'Login failed. Please try again.';
-      setError(msg);
+        err instanceof Error ? err.message : 'Login failed. Please try again.'
+      setError(msg)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -47,7 +73,8 @@ export default function Login() {
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500/40"
+              disabled={submitting}
+              className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:opacity-60"
               placeholder="you@example.com"
               autoComplete="email"
               required
@@ -56,23 +83,59 @@ export default function Login() {
 
           <label className="block text-sm text-slate-300">
             Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500/40"
-              placeholder="••••••••"
-              autoComplete="current-password"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={submitting}
+                className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 pr-10 outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:opacity-60"
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-slate-300 hover:bg-slate-800"
+                disabled={submitting}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
           </label>
+
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-sm text-slate-300">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={submitting}
+                className="h-4 w-4 rounded border-slate-700 bg-slate-950"
+              />
+              Remember email
+            </label>
+
+            <label className="flex items-center gap-2 text-sm text-slate-300">
+              <input
+                type="checkbox"
+                checked={rememberPassword}
+                onChange={(e) => setRememberPassword(e.target.checked)}
+                disabled={submitting}
+                className="h-4 w-4 rounded border-slate-700 bg-slate-950"
+              />
+              Remember password (not recommended on shared devices)
+            </label>
+          </div>
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={submitting}
             className="w-full rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-emerald-200 hover:bg-emerald-500/15 disabled:opacity-60"
           >
-            {isLoading ? 'Signing in…' : 'Sign in'}
+            {submitting ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
 
