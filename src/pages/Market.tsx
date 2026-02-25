@@ -39,17 +39,6 @@ export default function Market() {
         return t
       })
 
-      // Add any new symbols that arrive via WS but were not in initial ticks
-      for (const [symbol, v] of Object.entries(updates)) {
-        if (!next.find((t) => t.symbol === symbol) && typeof v?.price === 'number') {
-          next.push({ symbol, price: v.price })
-          setFlash((f) => ({ ...f, [symbol]: true }))
-          setTimeout(() => {
-            setFlash((f) => ({ ...f, [symbol]: false }))
-          }, 350)
-        }
-      }
-
       return next
     }))
   }, [ws.prices])

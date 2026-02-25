@@ -48,10 +48,16 @@ export function useWsPrices() {
           ? accRes.data.favorites.map(normalizeSymbol)
           : []
 
-        const base = 'http://localhost:3000/market/latest'
+        // Ensure WebSocket protocol (ws / wss) instead of http / https
+        const httpBase = `${import.meta.env.VITE_API_URL}/market/latest`
+        const base = httpBase
+          .replace(/^http:/i, 'ws:')
+          .replace(/^https:/i, 'wss:')
+
         const params = new URLSearchParams()
         if (userId) params.set('userId', userId)
         if (favorites.length) params.set('favorites', favorites.join(','))
+        if (token) params.set('token', token)
 
         const url = params.toString() ? `${base}?${params.toString()}` : base
 
@@ -63,6 +69,7 @@ export function useWsPrices() {
         }
 
         ws.onmessage = (ev) => {
+          console.log('WS MESSAGE:', ev.data)
           try {
             const data = JSON.parse(String(ev.data))
 
