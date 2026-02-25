@@ -3,7 +3,7 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Research from './pages/Research'
-import Market from './pages/Market'
+import Favorites from './pages/Favorites'
 import Profile from './pages/Profile'
 import Account from './pages/Account'
 import Navbar from './components/Navbar'
@@ -16,7 +16,7 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/market" element={<Market />} />
+        <Route path="/favorites" element={<Favorites />} />
         <Route path="/login" element={<Login />} />
         <Route
           path="/research"
