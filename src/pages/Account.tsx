@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { apiAccountMe } from '../api/account.api'
+import { apiAccountMe, apiAccountAddFavorite, apiAccountRemoveFavorite, apiAccountResetFavorites } from '../api/account.api'
 import type { IAccount } from '../interfaces/account.interface'
 
 export default function Account() {
   const [account, setAccount] = useState<IAccount | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [newSymbol, setNewSymbol] = useState('')
+  const [updating, setUpdating] = useState(false)
 
   useEffect(() => {
     const loadAccount = async () => {
@@ -22,6 +23,57 @@ export default function Account() {
 
     loadAccount()
   }, [])
+
+  const handleAddFavorite = async () => {
+    if (!newSymbol.trim()) return
+
+    try {
+      setUpdating(true)
+      setError(null)
+
+      const updated = await apiAccountAddFavorite(newSymbol.trim().toUpperCase())
+      setAccount((prev) =>
+        prev ? { ...prev, favorites: updated.favorites } : prev
+      )
+      setNewSymbol('')
+    } catch {
+      setError('Failed to add favorite')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  const handleRemoveFavorite = async (symbol: string) => {
+    try {
+      setUpdating(true)
+      setError(null)
+
+      const updated = await apiAccountRemoveFavorite(symbol)
+      setAccount((prev) =>
+        prev ? { ...prev, favorites: updated.favorites } : prev
+      )
+    } catch {
+      setError('Failed to remove favorite')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  const handleResetFavorites = async () => {
+    try {
+      setUpdating(true)
+      setError(null)
+
+      const updated = await apiAccountResetFavorites()
+      setAccount((prev) =>
+        prev ? { ...prev, favorites: updated.favorites } : prev
+      )
+    } catch {
+      setError('Failed to reset favorites')
+    } finally {
+      setUpdating(false)
+    }
+  }
 
   if (loading) {
     return <div className="p-6 text-slate-300">Loading account…</div>
@@ -48,28 +100,54 @@ export default function Account() {
         </span>
       </div>
 
-      <div className="text-sm text-slate-300 mt-2">
-        Favorites:
+      <div className="text-sm text-slate-300 mt-4">
+        <div className="font-semibold mb-2">Favorites</div>
+
+        <div className="flex flex-wrap gap-2 mb-3">
+          <input
+            value={newSymbol}
+            onChange={(e) => setNewSymbol(e.target.value)}
+            placeholder="Add symbol (e.g. BTCUSDT)"
+            className="px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
+          />
+          <button
+            onClick={handleAddFavorite}
+            disabled={updating}
+            className="px-3 py-2 rounded bg-emerald-600 text-white text-sm disabled:opacity-50"
+          >
+            Add
+          </button>
+
+          <button
+            onClick={handleResetFavorites}
+            disabled={updating}
+            className="px-3 py-2 rounded bg-amber-600 text-white text-sm disabled:opacity-50"
+          >
+            Reset to Default
+          </button>
+        </div>
+
         {account.favorites?.length ? (
-          <ul className="mt-1 flex flex-wrap gap-2">
+          <ul className="flex flex-wrap gap-3">
             {account.favorites.map((s) => (
               <li
                 key={s}
-                className="px-2 py-1 rounded bg-slate-800 text-xs font-mono"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-800 text-sm font-mono font-semibold"
               >
                 {s}
+                <button
+                  onClick={() => handleRemoveFavorite(s)}
+                  disabled={updating}
+                  className="text-rose-400 hover:text-rose-300 text-sm"
+                >
+                  ✕
+                </button>
               </li>
             ))}
           </ul>
         ) : (
-          <span className="ml-2 text-slate-400">No favorites yet</span>
+          <span className="text-slate-400">No favorites yet</span>
         )}
-      </div>
-
-      <div className="mt-3">
-        <Link to="/profile" className="text-emerald-400 underline">
-          Manage favorites
-        </Link>
       </div>
     </div>
   )
