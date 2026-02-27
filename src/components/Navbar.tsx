@@ -35,6 +35,9 @@ export default function Navbar() {
             <Link to="/account" className="hover:underline">
               Account
             </Link>
+            <Link to="/portfolio" className="hover:underline">
+              Portfolio
+            </Link>
           </>
         )}
       </div>

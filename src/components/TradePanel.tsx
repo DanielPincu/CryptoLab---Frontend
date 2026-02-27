@@ -2,16 +2,9 @@ import { useState, useEffect } from 'react'
 import { executeTrade } from '../api/trade.api'
 import type { AxiosError } from 'axios'
 import type { TradePayload } from '../interfaces/tradePayload.interface'
+import type { TradePanelProps } from '../interfaces/tradePanelProps.interface'
 
 type Mode = 'QTY' | 'USD'
-
-interface Props {
-  symbol?: string
-  currentPrice?: number
-  availableCash?: number
-  positionQty?: number
-  onSuccess?: () => void
-}
 
 export default function TradePanel({
   symbol,
@@ -19,7 +12,7 @@ export default function TradePanel({
   availableCash,
   positionQty,
   onSuccess
-}: Props) {
+}: TradePanelProps) {
   const [side, setSide] = useState<'BUY' | 'SELL'>('BUY')
   const [mode, setMode] = useState<Mode>('QTY')
   const [value, setValue] = useState('')
@@ -96,46 +89,54 @@ export default function TradePanel({
   let insufficientCash = false
   let insufficientPosition = false
 
-  if (typeof currentPrice === 'number' && value) {
-    if (side === 'BUY' && value === 'MAX' && typeof availableCash === 'number') {
-      const bufferedCash = availableCash * 0.999
-      const qty = bufferedCash / currentPrice
-      estimatedText = `Using ~99.9% balance ($${bufferedCash.toFixed(2)}) → ${qty.toFixed(6)} ${symbol}`
-    } else if (side === 'SELL' && value === 'ALL' && typeof positionQty === 'number') {
-      const total = positionQty * currentPrice
-      estimatedText = `Selling ${positionQty.toFixed(6)} ${symbol} → $${total.toFixed(2)}`
-    } else if (value !== 'MAX' && value !== 'ALL') {
-      const numeric = Number(value)
-      if (Number.isFinite(numeric) && numeric > 0) {
-        if (mode === 'QTY') {
-          const total = numeric * currentPrice
-          estimatedText = `Estimated total: $${total.toFixed(2)}`
+  const cash = Number(availableCash ?? 0)
+  const qtyOwned = Number(positionQty ?? 0)
+  const numeric = Number(value)
 
-          if (side === 'BUY' && typeof availableCash === 'number' && total > availableCash) {
-            insufficientCash = true
-          }
+  const hasPrice = typeof currentPrice === 'number'
 
-          if (side === 'SELL' && typeof positionQty === 'number' && numeric > positionQty) {
-            insufficientPosition = true
-          }
-        } else {
-          const qty = numeric / currentPrice
-          estimatedText = `Estimated quantity: ${qty.toFixed(6)} ${symbol}`
+  // Special quick actions (non-numeric input)
+  if (hasPrice && symbol && value === 'MAX' && side === 'BUY') {
+    const bufferedCash = cash * 0.999
+    const qty = currentPrice > 0 ? bufferedCash / currentPrice : 0
+    estimatedText = `Using ~99.9% balance ($${bufferedCash.toFixed(2)}) → ${qty.toFixed(6)} ${symbol}`
+    if (bufferedCash <= 0) insufficientCash = true
+  }
 
-          if (side === 'BUY' && typeof availableCash === 'number' && numeric > availableCash) {
-            insufficientCash = true
-          }
+  if (hasPrice && symbol && value === 'ALL' && side === 'SELL') {
+    const total = qtyOwned * currentPrice
+    estimatedText = `Selling ${qtyOwned.toFixed(6)} ${symbol} → $${total.toFixed(2)}`
+    if (qtyOwned <= 0) insufficientPosition = true
+  }
 
-          if (side === 'SELL' && typeof positionQty === 'number' && qty > positionQty) {
-            insufficientPosition = true
-          }
-        }
+  // Regular numeric entry
+  if (hasPrice && value && value !== 'MAX' && value !== 'ALL' && Number.isFinite(numeric) && numeric > 0) {
+    if (side === 'BUY') {
+      if (mode === 'QTY') {
+        const total = numeric * currentPrice
+        estimatedText = `Estimated total: $${total.toFixed(2)}`
+        if (total > cash) insufficientCash = true
+      } else {
+        const qty = numeric / currentPrice
+        estimatedText = `Estimated quantity: ${qty.toFixed(6)} ${symbol ?? ''}`
+        if (numeric > cash) insufficientCash = true
+      }
+    } else {
+      // SELL
+      if (mode === 'QTY') {
+        const total = numeric * currentPrice
+        estimatedText = `Estimated total: $${total.toFixed(2)}`
+        if (numeric > qtyOwned) insufficientPosition = true
+      } else {
+        const qty = numeric / currentPrice
+        estimatedText = `Estimated quantity: ${qty.toFixed(6)} ${symbol ?? ''}`
+        if (qty > qtyOwned) insufficientPosition = true
       }
     }
   }
 
   return (
-    <div className="p-4 bg-gray-900 rounded-lg w-96 text-white">
+    <div className="p-4 bg-gray-900 rounded-lg text-white">
       <h2 className="text-lg font-semibold mb-4">Trade</h2>
 
       <div className="mb-4 p-2 rounded bg-gray-800 border border-gray-700 text-sm">
@@ -148,7 +149,7 @@ export default function TradePanel({
         )}
       </div>
 
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-4 mb-4">
         <button
           className={`flex-1 p-2 rounded ${side === 'BUY' ? 'bg-green-600' : 'bg-gray-700'}`}
           onClick={() => {
@@ -169,7 +170,7 @@ export default function TradePanel({
         </button>
       </div>
 
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-4 mb-4">
         <button
           className={`flex-1 p-2 rounded ${mode === 'QTY' ? 'bg-blue-600' : 'bg-gray-700'}`}
           onClick={() => {
@@ -233,27 +234,6 @@ export default function TradePanel({
             Sell entire position
           </span>
         )}
-      </div>
-
-      <div className="flex gap-2 mb-3">
-        <button
-          className={`flex-1 p-2 rounded ${side === 'BUY' ? 'bg-green-600' : 'bg-gray-700'}`}
-          onClick={() => {
-            setSide('BUY')
-            setError(null)
-          }}
-        >
-          Buy
-        </button>
-        <button
-          className={`flex-1 p-2 rounded ${side === 'SELL' ? 'bg-red-600' : 'bg-gray-700'}`}
-          onClick={() => {
-            setSide('SELL')
-            setError(null)
-          }}
-        >
-          Sell
-        </button>
       </div>
 
       <div className="min-h-[48px] mb-2">

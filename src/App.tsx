@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
 import Account from './pages/Account'
 import Navbar from './components/Navbar'
+import Portfolio from './pages/Portfolio'
+
 import { RequireAuth } from './auth/RequireAuth'
 
 
@@ -43,6 +45,16 @@ function App() {
             </RequireAuth>
           }
         />
+
+        <Route
+          path="/portfolio"
+          element={
+            <RequireAuth>
+              <Portfolio />
+            </RequireAuth>
+          }
+        />
+
         <Route path="/register" element={<Register />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
