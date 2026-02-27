@@ -49,10 +49,10 @@ export default function Home() {
 
             <div className="flex gap-3">
               <Link
-                to="/market"
+                to="/dashboard"
                 className="px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/20 transition"
               >
-                Go to Market
+                Dashboard
               </Link>
               <Link
                 to="/profile"
