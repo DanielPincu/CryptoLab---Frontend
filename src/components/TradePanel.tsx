@@ -92,6 +92,7 @@ export default function TradePanel({
   const cash = Number(availableCash ?? 0)
   const qtyOwned = Number(positionQty ?? 0)
   const numeric = Number(value)
+  const noSymbol = !symbol
 
   const hasPrice = typeof currentPrice === 'number'
 
@@ -158,8 +159,10 @@ export default function TradePanel({
 
       <div className="flex gap-4 mb-4">
         <button
-          className={`flex-1 p-2 rounded ${side === 'BUY' ? 'bg-green-600' : 'bg-gray-700'}`}
+          disabled={noSymbol}
+          className={`flex-1 p-2 rounded ${side === 'BUY' ? 'bg-green-600' : 'bg-gray-700'} ${noSymbol ? 'opacity-50 cursor-not-allowed' : ''}`}
           onClick={() => {
+            if (noSymbol) return
             setSide('BUY')
             setError(null)
           }}
@@ -167,8 +170,13 @@ export default function TradePanel({
           Buy
         </button>
         <button
-          className={`flex-1 p-2 rounded ${side === 'SELL' ? 'bg-red-600' : 'bg-gray-700'}`}
+          disabled={noSymbol || positionQty === undefined}
+          className={`flex-1 p-2 rounded ${
+            side === 'SELL' ? 'bg-red-600' : 'bg-gray-700'
+          } ${positionQty === undefined ? 'opacity-50 cursor-not-allowed' : ''} ${noSymbol ? 'opacity-50 cursor-not-allowed' : ''}`}
           onClick={() => {
+            if (positionQty === undefined) return
+            if (noSymbol) return
             setSide('SELL')
             setError(null)
           }}
@@ -179,8 +187,10 @@ export default function TradePanel({
 
       <div className="flex gap-4 mb-4">
         <button
-          className={`flex-1 p-2 rounded ${mode === 'QTY' ? 'bg-blue-600' : 'bg-gray-700'}`}
+          disabled={noSymbol}
+          className={`flex-1 p-2 rounded ${mode === 'QTY' ? 'bg-blue-600' : 'bg-gray-700'} ${noSymbol ? 'opacity-50 cursor-not-allowed' : ''}`}
           onClick={() => {
+            if (noSymbol) return
             setMode('QTY')
             setValue('')
           }}
@@ -188,8 +198,10 @@ export default function TradePanel({
           Qty
         </button>
         <button
-          className={`flex-1 p-2 rounded ${mode === 'USD' ? 'bg-blue-600' : 'bg-gray-700'}`}
+          disabled={noSymbol}
+          className={`flex-1 p-2 rounded ${mode === 'USD' ? 'bg-blue-600' : 'bg-gray-700'} ${noSymbol ? 'opacity-50 cursor-not-allowed' : ''}`}
           onClick={() => {
+            if (noSymbol) return
             setMode('USD')
             setValue('')
           }}
@@ -227,16 +239,22 @@ export default function TradePanel({
       <div className="flex justify-end mb-2 text-sm">
         {side === 'BUY' && (
           <span
-            onClick={() => setValue('MAX')}
-            className="text-yellow-400 hover:text-yellow-300 cursor-pointer"
+            onClick={() => {
+              if (noSymbol) return
+              setValue('MAX')
+            }}
+            className={`text-yellow-400 hover:text-yellow-300 ${noSymbol ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             Use max buying power
           </span>
         )}
         {side === 'SELL' && (
           <span
-            onClick={() => setValue('ALL')}
-            className="text-yellow-400 hover:text-yellow-300 cursor-pointer"
+            onClick={() => {
+              if (noSymbol || positionQty === undefined) return
+              setValue('ALL')
+            }}
+            className={`text-yellow-400 hover:text-yellow-300 ${(noSymbol || positionQty === undefined) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             Sell entire position
           </span>
@@ -250,10 +268,18 @@ export default function TradePanel({
 
       <button
         onClick={handleSubmit}
-        disabled={loading || insufficientCash || insufficientPosition}
+        disabled={
+          noSymbol ||
+          loading ||
+          insufficientCash ||
+          insufficientPosition ||
+          (side === 'SELL' && (positionQty === undefined || positionQty <= 0))
+        }
         className={`w-full p-2 rounded ${
           side === 'BUY' ? 'bg-green-700' : 'bg-red-700'
-        }`}
+        } ${(side === 'SELL' && (positionQty === undefined || positionQty <= 0)) || noSymbol
+            ? 'opacity-50 cursor-not-allowed'
+            : ''}`}
       >
         {loading ? 'Processing...' : side}
       </button>
