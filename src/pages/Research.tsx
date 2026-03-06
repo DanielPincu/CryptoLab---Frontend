@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { Chart } from 'chart.js/auto'
 import TradePanel from '../components/TradePanel'
+import ResearchGraph from '../components/ResearchGraph'
 import {
   apiMarketSymbols,
   apiMarketHistory,
@@ -127,16 +128,13 @@ export default function Research() {
 
     void init()
     // Load initial chart for default symbol
-    void loadHistory('year', 'BTCUSDT')
-    void loadQuote('BTCUSDT')
   }, [loadHistory, loadQuote])
 
   useEffect(() => {
     if (symbol) {
-      void loadHistory(preset, symbol)
       void loadQuote(symbol)
     }
-  }, [symbol, preset, loadHistory, loadQuote])
+  }, [symbol, loadQuote])
 
   const isFavorite = favorites.includes(symbol)
 
@@ -181,9 +179,8 @@ export default function Research() {
             const v = normalizeSymbol(e.target.value)
             setSymbol(v)
             setPreset('year')
-            void loadHistory('year', v)
           }}
-          className="px-3 py-2 rounded bg-slate-800 border border-slate-700"
+          className="w-96 px-3 py-2 rounded bg-slate-800 border border-slate-700"
         >
           {symbols.map((s) => (
             <option key={s.symbol} value={s.symbol.replace(/^BINANCE:/, '')}>
@@ -198,7 +195,6 @@ export default function Research() {
               key={k}
               onClick={() => {
                 setPreset(k)
-                void loadHistory(k, symbol)
               }}
               className={
                 'px-3 py-1.5 rounded-full border border-slate-800 text-sm transition ' +
@@ -250,7 +246,7 @@ export default function Research() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 rounded-lg border border-slate-800 bg-slate-950 p-3">
-          <canvas ref={canvasRef} height={120}></canvas>
+          <ResearchGraph symbol={symbol} preset={preset} />
         </div>
 
         <div className="rounded-lg border border-slate-800 bg-slate-950 p-3">
@@ -259,8 +255,15 @@ export default function Research() {
             currentPrice={quote?.price}
             availableCash={accountCash}
             positionQty={0}
-            onSuccess={() => {
+            onSuccess={async () => {
               void loadQuote(symbol)
+
+              try {
+                const me = await apiAccountMe()
+                setAccountCash(Number(me?.cashBalance ?? 0))
+              } catch {
+                // ignore refresh error
+              }
             }}
           />
         </div>
