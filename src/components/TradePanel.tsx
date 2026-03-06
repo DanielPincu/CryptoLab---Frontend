@@ -157,23 +157,32 @@ export default function TradePanel({
         </span>
       </div>
 
-      <div className="flex gap-4 mb-4">
+      <div className="relative flex mb-4 bg-gray-850/80 rounded-lg p-0.5 border border-gray-700 shadow-inner overflow-hidden select-none">
+        <div
+          className={`absolute top-0.5 bottom-0.5 left-0.5 w-1/2 rounded-md shadow
+    transform transition-transform duration-300 ease-out
+    ${side === 'BUY' ? 'translate-x-0 bg-green-600' : 'translate-x-full bg-red-600'}
+    ${noSymbol ? 'opacity-50' : ''}`}
+        />
         <button
           disabled={noSymbol}
-          className={`flex-1 p-2 rounded ${side === 'BUY' ? 'bg-green-600' : 'bg-gray-700'} ${noSymbol ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`relative flex-1 py-1 text-xs tracking-wide rounded-md transition-all duration-200 font-semibold z-10 flex items-center justify-center
+  ${side === 'BUY' ? 'text-white scale-150' : 'text-gray-400'}
+  ${noSymbol ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           onClick={() => {
             if (noSymbol) return
             setSide('BUY')
             setError(null)
           }}
         >
-          Buy
+          BUY
         </button>
+
         <button
           disabled={noSymbol || positionQty === undefined}
-          className={`flex-1 p-2 rounded ${
-            side === 'SELL' ? 'bg-red-600' : 'bg-gray-700'
-          } ${positionQty === undefined ? 'opacity-50 cursor-not-allowed' : ''} ${noSymbol ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`relative flex-1 py-1 text-xs tracking-wide rounded-md transition-all duration-200 font-semibold z-10 flex items-center justify-center
+  ${side === 'SELL' ? 'text-white scale-150' : 'text-gray-400'}
+  ${(positionQty === undefined || noSymbol) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           onClick={() => {
             if (positionQty === undefined) return
             if (noSymbol) return
@@ -181,7 +190,7 @@ export default function TradePanel({
             setError(null)
           }}
         >
-          Sell
+          SELL
         </button>
       </div>
 
@@ -211,8 +220,16 @@ export default function TradePanel({
       </div>
 
       <input
+        type="text"
+        inputMode="decimal"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => {
+          const raw = e.target.value
+          // allow digits and one decimal point only
+          if (/^\d*\.?\d*$/.test(raw)) {
+            setValue(raw)
+          }
+        }}
         placeholder={mode === 'QTY' ? 'Enter quantity' : 'Enter USD amount'}
         className="w-full mb-2 p-2 rounded bg-gray-800"
       />
