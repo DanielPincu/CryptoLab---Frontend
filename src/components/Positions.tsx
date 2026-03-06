@@ -49,7 +49,7 @@ export default function Positions({
 
   return (
     <div className="mb-4 p-3 rounded-lg bg-slate-900 border border-slate-800">
-      <div className="text-xs text-slate-400 mb-2">Your Positions</div>
+      <h1 className="text-xl font-semibold mb-4">Positions</h1>
 
       {livePositions.length === 0 ? (
         <div className="text-sm text-slate-500">No open positions</div>

@@ -69,7 +69,7 @@ export default function Dashboard() {
       </div>
 
       {/* Column 3: Positions */}
-      <div className="w-full max-h-[75vh] overflow-y-auto pr-2">
+      <div className="w-full overflow-y-auto pr-2">
         <Positions
           selectedSymbol={selectedSymbol}
           onSelect={(symbol, qty) => {

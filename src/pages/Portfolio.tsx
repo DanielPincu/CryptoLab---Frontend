@@ -41,13 +41,6 @@ export default function Portfolio() {
 
       {positionsCount > 0 && (
         <div className="w-96 shrink-0">
-          <div className="mb-4 p-3 rounded-lg bg-slate-900 border border-slate-800">
-            <div className="text-xs text-slate-400">Buying Power</div>
-            <div className="text-lg font-semibold text-emerald-400">
-              ${accountCash.toFixed(2)}
-            </div>
-          </div>
-
           <TradePanel
             symbol={selectedSymbol ?? undefined}
             currentPrice={selectedPrice}

@@ -137,7 +137,7 @@ export default function TradePanel({
 
   return (
     <div className="p-4 bg-gray-900 rounded-lg text-white">
-      <h2 className="text-lg font-semibold mb-4">Trade</h2>
+      <h1 className="text-xl font-semibold mb-4">Trade</h1>
 
       <div className="mb-4 p-2 rounded bg-gray-800 border border-gray-700 text-sm">
         {symbol ? (
@@ -147,6 +147,13 @@ export default function TradePanel({
         ) : (
           <span className="text-gray-400">No symbol selected</span>
         )}
+      </div>
+
+      <div className="mb-4 p-2 rounded bg-gray-800 border border-gray-700 text-sm flex justify-between">
+        <span className="text-gray-400">Buying Power</span>
+        <span className="font-mono text-emerald-400">
+          ${Number(availableCash ?? 0).toFixed(2)}
+        </span>
       </div>
 
       <div className="flex gap-4 mb-4">

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { Chart } from 'chart.js/auto'
+import TradePanel from '../components/TradePanel'
 import {
   apiMarketSymbols,
   apiMarketHistory,
@@ -34,6 +35,7 @@ export default function Research() {
   const [quote, setQuote] = useState<{ price?: number; ts?: number } | null>(null)
 
   const [favorites, setFavorites] = useState<string[]>([])
+  const [accountCash, setAccountCash] = useState<number>(0)
   const [favLoading, setFavLoading] = useState(false)
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -117,6 +119,7 @@ export default function Research() {
 
         setSymbols(symbolData)
         setFavorites((me?.favorites ?? []).map((s: string) => normalizeSymbol(s)))
+        setAccountCash(Number(me?.cashBalance ?? 0))
       } catch {
         setError('Failed to load data')
       }
@@ -164,7 +167,7 @@ export default function Research() {
   )
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6 mx-auto">
       <h1 className="text-xl font-semibold mb-4">Research</h1>
 
       {error && (
@@ -245,8 +248,22 @@ export default function Research() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-800 bg-slate-950 p-3">
-        <canvas ref={canvasRef} height={120}></canvas>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 rounded-lg border border-slate-800 bg-slate-950 p-3">
+          <canvas ref={canvasRef} height={120}></canvas>
+        </div>
+
+        <div className="rounded-lg border border-slate-800 bg-slate-950 p-3">
+          <TradePanel
+            symbol={symbol}
+            currentPrice={quote?.price}
+            availableCash={accountCash}
+            positionQty={0}
+            onSuccess={() => {
+              void loadQuote(symbol)
+            }}
+          />
+        </div>
       </div>
     </div>
   )
