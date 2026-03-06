@@ -5,9 +5,8 @@ import Register from './pages/Register'
 import Research from './pages/Research'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
-import Account from './pages/Account'
 import Navbar from './components/Navbar'
-import Portfolio from './pages/Portfolio'
+import Portfolio from './pages/Positions'
 
 import { RequireAuth } from './auth/RequireAuth'
 
@@ -33,15 +32,6 @@ function App() {
           element={
             <RequireAuth>
               <Profile />
-            </RequireAuth>
-          }
-        />
-
-        <Route
-          path="/account"
-          element={
-            <RequireAuth>
-              <Account />
             </RequireAuth>
           }
         />

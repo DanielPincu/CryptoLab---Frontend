@@ -29,14 +29,11 @@ export default function Navbar() {
             <Link to="/research" className="hover:underline">
               Research
             </Link>
-            <Link to="/profile" className="hover:underline">
-              Profile
-            </Link>
-            <Link to="/account" className="hover:underline">
-              Account
-            </Link>
             <Link to="/portfolio" className="hover:underline">
               Portfolio
+            </Link>
+            <Link to="/profile" className="hover:underline">
+              Profile
             </Link>
           </>
         )}
