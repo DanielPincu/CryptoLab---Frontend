@@ -109,63 +109,70 @@ export default function Profile() {
   }
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-      <h2 className="font-semibold mb-2">Profile</h2>
+    <div className="p-6 max-w-3xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-white">Profie information</h2>
+        <span className="text-xs text-slate-400">Manage user info</span>
+      </div>
 
       {success && <div className="mb-2 text-emerald-400 text-sm">{success}</div>}
       {profileError && <div className="mb-2 text-rose-400 text-sm">{profileError}</div>}
 
-      {!editing ? (
-        <>
-          <div className="text-sm text-slate-300">
-            Username: <span className="font-mono">{me.username}</span>
-          </div>
-          <div className="text-sm text-slate-300">
-            Email: <span className="font-mono">{me.email}</span>
-          </div>
+      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 shadow-lg">
+        {!editing ? (
+          <>
+            <div className="text-sm text-slate-400">
+              Username
+              <div className="font-mono text-white text-base">{me.username}</div>
+            </div>
+            <div className="text-sm text-slate-400">
+              Email
+              <div className="font-mono text-white text-base">{me.email}</div>
+            </div>
 
-          <button
-            onClick={() => setEditing(true)}
-            className="mt-3 text-emerald-400 underline"
-          >
-            Edit profile
-          </button>
-        </>
-      ) : (
-        <div className="flex flex-col gap-3">
-          <input
-            name="username"
-            value={form.username}
-            onChange={handleChange}
-            className="px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
-          />
-          <input
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            className="px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
-          />
-
-          <div className="flex gap-3">
             <button
-              onClick={handleSave}
-              disabled={saving}
-              className="px-3 py-1 rounded bg-emerald-600 text-white text-sm"
+              onClick={() => setEditing(true)}
+              className="mt-3 text-emerald-400 underline"
             >
-              {saving ? 'Saving…' : 'Save'}
+              Edit profile
             </button>
-            <button
-              onClick={() => setEditing(false)}
-              className="px-3 py-1 rounded bg-slate-700 text-sm"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+          </>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <input
+              name="username"
+              value={form.username}
+              onChange={handleChange}
+              className="px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
+            />
+            <input
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              className="px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
+            />
 
-      <div className="mt-6 border-t border-slate-800 pt-4">
-        <h3 className="text-sm font-semibold mb-2">Change Password</h3>
+            <div className="flex gap-3">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-3 py-1 rounded bg-emerald-600 text-white text-sm"
+              >
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                className="px-3 py-1 rounded bg-slate-700 text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 shadow-lg">
+        <h3 className="text-sm font-semibold mb-4 text-white">Change Password</h3>
 
         <div className="flex flex-col gap-3">
           <input
