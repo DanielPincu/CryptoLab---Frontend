@@ -70,6 +70,7 @@ export default function ResearchGraph({ symbol, preset }: Props) {
           },
           options: {
             responsive: true,
+            maintainAspectRatio: false,
             interaction: {
               mode: 'index',
               intersect: false
@@ -105,5 +106,5 @@ export default function ResearchGraph({ symbol, preset }: Props) {
     }
   }, [symbol, preset])
 
-  return <canvas ref={canvasRef} height={120}></canvas>
+  return <canvas ref={canvasRef} className="w-full h-full"></canvas>
 }

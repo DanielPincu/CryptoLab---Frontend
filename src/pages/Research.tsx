@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { Chart } from 'chart.js/auto'
 import TradePanel from '../components/TradePanel'
+import Positions from '../components/Positions'
 import ResearchGraph from '../components/ResearchGraph'
 import {
   apiMarketSymbols,
@@ -38,6 +39,14 @@ export default function Research() {
   const [favorites, setFavorites] = useState<string[]>([])
   const [accountCash, setAccountCash] = useState<number>(0)
   const [favLoading, setFavLoading] = useState(false)
+  const [showPositions, setShowPositions] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    const saved = localStorage.getItem('research:positions')
+    if (!saved) return false
+    return saved === 'open'
+  })
+  const [selectedPositionQty, setSelectedPositionQty] = useState<number>(0)
+  const [positionsRefreshKey, setPositionsRefreshKey] = useState(0)
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const chartRef = useRef<Chart | null>(null)
@@ -136,6 +145,14 @@ export default function Research() {
     }
   }, [symbol, loadQuote])
 
+  useEffect(() => {
+    try {
+      localStorage.setItem('research:positions', showPositions ? 'open' : 'closed')
+    } catch {
+      // ignore storage errors
+    }
+  }, [showPositions])
+
   const isFavorite = favorites.includes(symbol)
 
   async function handleAddFavorite() {
@@ -165,7 +182,7 @@ export default function Research() {
   )
 
   return (
-    <div className="p-6 mx-auto">
+    <div className="p-6 mx-auto overflow-x-hidden h-screen overflow-y-hidden">
       <h1 className="text-xl font-semibold mb-4">Research</h1>
 
       {error && (
@@ -244,28 +261,77 @@ export default function Research() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 rounded-lg border border-slate-800 bg-slate-950 p-3">
-          <ResearchGraph symbol={symbol} preset={preset} />
+      <div className="grid items-start gap-4 min-w-0 grid-cols-1 lg:grid-cols-12">
+        <div className={`min-w-0 ${showPositions ? 'lg:col-span-7' : 'lg:col-span-8'} rounded-lg border border-slate-800 bg-slate-950 p-3 h-[520px] lg:h-[600px]`}>
+          <ResearchGraph
+            key={`${symbol}-${preset}-${showPositions}`}
+            symbol={symbol}
+            preset={preset}
+          />
         </div>
 
-        <div className="rounded-lg border border-slate-800 bg-slate-950 p-3">
+        <div className={`min-w-0 ${showPositions ? 'lg:col-span-3' : 'lg:col-span-3'} rounded-lg border border-slate-800 bg-slate-950 p-3`}>
           <TradePanel
             symbol={symbol}
             currentPrice={quote?.price}
             availableCash={accountCash}
-            positionQty={0}
+            positionQty={selectedPositionQty}
             onSuccess={async () => {
               void loadQuote(symbol)
 
               try {
                 const me = await apiAccountMe()
                 setAccountCash(Number(me?.cashBalance ?? 0))
+                setPositionsRefreshKey((k) => k + 1)
               } catch {
                 // ignore refresh error
               }
             }}
           />
+        </div>
+
+        {/* Positions Drawer */}
+        <div className={`relative hidden lg:flex items-start ${showPositions ? 'lg:col-span-2' : 'lg:col-span-1'}`}>
+          <div
+            className={`overflow-hidden transform transition-transform duration-500 ease-in-out ${
+              showPositions
+                ? 'translate-x-0 opacity-100'
+                : 'translate-x-full opacity-0 pointer-events-none'
+            }`}
+          >
+            <button
+              onClick={() => setShowPositions(false)}
+              className="mb-2 w-full flex items-center justify-between px-4 py-2 rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 transition"
+            >
+              <span className="text-sm font-semibold text-slate-300 uppercase">Positions</span>
+              <span className="text-slate-400">→</span>
+            </button>
+
+            <div className="overflow-y-auto w-64 pr-2  max-h-[calc(100vh-260px)]">
+              <Positions
+                selectedSymbol={symbol}
+                refreshKey={positionsRefreshKey}
+                onSelect={(sym, qty) => {
+                  setSymbol(sym)
+                  setSelectedPositionQty(qty)
+                }}
+              />
+            </div>
+          </div>
+
+          <div
+            className={`flex items-start justify-center transition-all duration-500 ease-in-out ${
+              showPositions ? 'w-0 opacity-0 pointer-events-none' : 'w-12 opacity-100'
+            }`}
+          >
+            <button
+              onClick={() => setShowPositions(true)}
+              className="flex min-h-[600px] flex-col items-center justify-center gap-2 px-2 py-3 rounded-l-lg border border-slate-900 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition"
+            >
+              <span className="text-xs uppercase tracking-wide opacity-70">Positions</span>
+              <span className="text-lg">←</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
