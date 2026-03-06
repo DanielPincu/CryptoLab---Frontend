@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { executeTrade } from '../api/trade.api'
+import { getPositions } from '../api/positions.api'
 import type { AxiosError } from 'axios'
 import type { TradePayload } from '../interfaces/tradePayload.interface'
 import type { TradePanelProps } from '../interfaces/tradePanelProps.interface'
+import type { Position } from '../interfaces/position.interface'
 
 type Mode = 'QTY' | 'USD'
 
@@ -19,6 +21,21 @@ export default function TradePanel({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  const [positions, setPositions] = useState<Position[]>([])
+
+  async function loadPositions() {
+    try {
+      const data = await getPositions()
+      setPositions(data)
+    } catch {
+      setPositions([])
+    }
+  }
+
+  useEffect(() => {
+    loadPositions()
+  }, [symbol])
 
   useEffect(() => {
     if (!error) return
@@ -65,6 +82,9 @@ export default function TradePanel({
 
       await executeTrade(payload)
 
+      // refresh positions so SELL toggle updates immediately
+      await loadPositions()
+
       setSuccess(`${side} order executed successfully`)
       setValue('')
       onSuccess?.()
@@ -90,7 +110,8 @@ export default function TradePanel({
   let insufficientPosition = false
 
   const cash = Number(availableCash ?? 0)
-  const qtyOwned = Number(positionQty ?? 0)
+  const pos = positions.find(p => p.symbol === symbol)
+  const qtyOwned = pos ? Number(pos.qty) : Number(positionQty ?? 0)
   const numeric = Number(value)
   const noSymbol = !symbol
 
@@ -179,13 +200,12 @@ export default function TradePanel({
         </button>
 
         <button
-          disabled={noSymbol || positionQty === undefined}
+          disabled={noSymbol || qtyOwned <= 0}
           className={`relative flex-1 py-1 text-xs tracking-wide rounded-md transition-all duration-200 font-semibold z-10 flex items-center justify-center
   ${side === 'SELL' ? 'text-white scale-150' : 'text-gray-400'}
-  ${(positionQty === undefined || noSymbol) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+  ${(qtyOwned <= 0 || noSymbol) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           onClick={() => {
-            if (positionQty === undefined) return
-            if (noSymbol) return
+            if (noSymbol || qtyOwned <= 0) return
             setSide('SELL')
             setError(null)
           }}
@@ -268,10 +288,10 @@ export default function TradePanel({
         {side === 'SELL' && (
           <span
             onClick={() => {
-              if (noSymbol || positionQty === undefined) return
+              if (noSymbol || qtyOwned <= 0) return
               setValue('ALL')
             }}
-            className={`text-yellow-400 hover:text-yellow-300 ${(noSymbol || positionQty === undefined) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            className={`text-yellow-400 hover:text-yellow-300 ${(noSymbol || qtyOwned <= 0) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             Sell entire position
           </span>
@@ -290,11 +310,11 @@ export default function TradePanel({
           loading ||
           insufficientCash ||
           insufficientPosition ||
-          (side === 'SELL' && (positionQty === undefined || positionQty <= 0))
+          (side === 'SELL' && qtyOwned <= 0)
         }
         className={`w-full p-2 rounded ${
           side === 'BUY' ? 'bg-green-700' : 'bg-red-700'
-        } ${(side === 'SELL' && (positionQty === undefined || positionQty <= 0)) || noSymbol
+        } ${(side === 'SELL' && qtyOwned <= 0) || noSymbol
             ? 'opacity-50 cursor-not-allowed'
             : ''}`}
       >

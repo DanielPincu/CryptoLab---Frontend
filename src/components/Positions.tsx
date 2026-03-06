@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useWsPrices } from '../state/useWsPrices'
-import { http } from '../api/http.api'
+import { getPositions } from '../api/positions.api'
 import type { Position } from '../interfaces/position.interface'
 import type { PositionsProps } from '../interfaces/positionProps.interface'
 
@@ -18,8 +18,8 @@ export default function Positions({
 
   useEffect(() => {
     if (!isControlled) {
-      http.get<Position[]>('/positions')
-        .then((res) => setInternalPositions(res.data ?? []))
+      getPositions()
+        .then((data) => setInternalPositions(data ?? []))
         .catch(() => setInternalPositions([]))
     }
   }, [isControlled, refreshKey])
