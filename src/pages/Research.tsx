@@ -182,7 +182,7 @@ export default function Research() {
   )
 
   return (
-    <div className="p-6 mx-auto overflow-x-hidden md:h-[calc(100vh-73px)] md:overflow-y-hidden">
+    <div className="p-6 mx-auto overflow-x-hidden md:h-[calc(100vh-73px)] ">
       <h1 className="text-xl font-semibold mb-4">Research</h1>
 
       {error && (
@@ -276,7 +276,13 @@ export default function Research() {
 
               try {
                 const me = await apiAccountMe()
+
                 setAccountCash(Number(me?.cashBalance ?? 0))
+
+                // refresh favorites so websocket subscriptions update
+                setFavorites((me?.favorites ?? []).map((s: string) => normalizeSymbol(s)))
+
+                // refresh positions
                 setPositionsRefreshKey((k) => k + 1)
               } catch {
                 // ignore refresh error
@@ -302,7 +308,7 @@ export default function Research() {
               <span className="text-slate-400">→</span>
             </button>
 
-          <div className="overflow-y-auto w-96 pr-2 md:h-full">
+          <div className="w-96 md:h-full max-h-[70vh] overflow-y-auto">
               <Positions
                 selectedSymbol={symbol}
                 refreshKey={positionsRefreshKey}

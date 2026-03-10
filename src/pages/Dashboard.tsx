@@ -132,7 +132,7 @@ export default function Dashboard() {
               <span className="text-slate-400">→</span>
             </button>
 
-            <div className="overflow-y-auto pr-2">
+            <div className="max-h-[70vh] overflow-y-auto pr-2">
               <Positions
                 selectedSymbol={selectedSymbol}
                 onSelect={(symbol, qty) => {

@@ -21,6 +21,7 @@ export default function LivePrices({
   const [error, setError] = useState<string | null>(null)
   const [account, setAccount] = useState<IAccount | null>(null)
   const [updating, setUpdating] = useState(false)
+  const [warning, setWarning] = useState<string | null>(null)
 
   const [flash, setFlash] = useState<Record<string, boolean>>({})
   const prevPricesRef = useRef<Record<string, number>>({})
@@ -67,6 +68,18 @@ export default function LivePrices({
       setUpdating(true)
       const updated = await apiAccountRemoveFavorite(symbol)
       setAccount((prev) => (prev ? { ...prev, favorites: updated.favorites } : prev))
+    } catch (err: unknown) {
+      let message = 'Cannot unsubscribe while position is open'
+
+      if (typeof err === 'object' && err && 'response' in err) {
+        const e = err as { response?: { data?: { error?: string } } }
+        if (e.response?.data?.error) {
+          message = e.response.data.error
+        }
+      }
+
+      setWarning(message)
+      setTimeout(() => setWarning(null), 3000)
     } finally {
       setUpdating(false)
     }
@@ -130,6 +143,11 @@ export default function LivePrices({
 
   return (
     <div className="flex-1">
+      {warning && (
+        <div className="mb-3 rounded-md border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
+          {warning}
+        </div>
+      )}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold">Live Prices</h1>
         <button
