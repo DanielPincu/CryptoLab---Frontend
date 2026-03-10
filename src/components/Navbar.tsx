@@ -40,6 +40,10 @@ export default function Navbar() {
               Transactions
             </Link>
 
+            <Link to="/leaderboard" className="hover:underline">
+              Leaderboard
+            </Link>
+
             <Link to="/profile" className="hover:underline">
               Profile
             </Link>

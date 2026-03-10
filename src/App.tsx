@@ -8,6 +8,7 @@ import Profile from './pages/Profile'
 import Navbar from './components/Navbar'
 import Portfolio from './pages/Positions'
 import Transactions from './pages/Transactions'
+import Leaderboard from './components/LeaderboardTable' 
 
 import { RequireAuth } from './auth/RequireAuth'
 
@@ -51,6 +52,15 @@ function App() {
           element={
             <RequireAuth>
               <Transactions />
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/leaderboard"
+          element={
+            <RequireAuth>
+              <Leaderboard />
             </RequireAuth>
           }
         />
