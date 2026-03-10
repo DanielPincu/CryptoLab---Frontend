@@ -23,18 +23,27 @@ export default function Navbar() {
 
         {isAuthenticated && (
           <>
+
             <Link to="/dashboard" className="hover:underline">
                Dashboard
             </Link>
+
             <Link to="/research" className="hover:underline">
               Research
             </Link>
+
             <Link to="/portfolio" className="hover:underline">
               Portfolio
             </Link>
+
+            <Link to="/transactions" className="hover:underline">
+              Transactions
+            </Link>
+
             <Link to="/profile" className="hover:underline">
               Profile
             </Link>
+            
           </>
         )}
       </div>

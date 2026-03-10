@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
 import Navbar from './components/Navbar'
 import Portfolio from './pages/Positions'
+import Transactions from './pages/Transactions'
 
 import { RequireAuth } from './auth/RequireAuth'
 
@@ -41,6 +42,15 @@ function App() {
           element={
             <RequireAuth>
               <Portfolio />
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/transactions"
+          element={
+            <RequireAuth>
+              <Transactions />
             </RequireAuth>
           }
         />
