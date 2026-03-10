@@ -53,7 +53,7 @@ export default function Dashboard() {
   if (error) return <div className="p-6 text-rose-400">{error}</div>
 
   return (
-    <div className="p-6 min-h-screen mx-auto space-y-6 [scrollbar-gutter:stable]">
+    <div className="p-6 mx-auto space-y-6 [scrollbar-gutter:stable]">
 
       {/* Portfolio Summary */}
       <div className="w-full">
@@ -80,7 +80,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className={`grid items-start ${showPositions ? 'grid-cols-[2fr_1fr_1fr]' : 'grid-cols-[2fr_1fr_48px]'} gap-6`}>
+      <div className={`grid grid-cols-1 md:items-start ${showPositions ? 'md:grid-cols-[2fr_1fr_1fr]' : 'md:grid-cols-[2fr_1fr_48px]'} gap-6`}>
         {/* Column 1: Live Prices */}
         <div className='rounded-lg border border-slate-800 bg-slate-950 p-3'>
         <LivePrices
@@ -145,7 +145,7 @@ export default function Dashboard() {
           </div>
 
           {!showPositions && (
-            <div className="flex items-start justify-center w-12">
+            <div className="hidden md:flex items-start justify-center w-12">
               <button
                 onClick={() => setShowPositions(true)}
                 className="flex min-h-[670px] flex-col items-center justify-center gap-2 px-2 py-3 rounded-l-lg border border-slate-900 bg-slate-700 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"

@@ -182,7 +182,7 @@ export default function Research() {
   )
 
   return (
-    <div className="p-6 mx-auto overflow-x-hidden">
+    <div className="p-6 mx-auto overflow-x-hidden md:h-[calc(100vh-73px)] md:overflow-y-hidden">
       <h1 className="text-xl font-semibold mb-4">Research</h1>
 
       {error && (
@@ -256,7 +256,7 @@ export default function Research() {
         
       </div>
 
-      <div className={`grid grid-cols-1 md:items-start ${showPositions ? 'md:grid-cols-[2fr_1fr_1fr]' : 'md:grid-cols-[2fr_1fr_48px]'} gap-6`}>
+      <div className={`grid grid-cols-1 md:items-start ${showPositions ? 'md:grid-cols-[2fr_1fr_1fr]' : 'md:grid-cols-[2fr_1fr_48px]'} gap-6 md:h-[calc(100%-7.5rem)]`}>
         <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950 p-3 h-[585px]">
           <ResearchGraph
             key={`${symbol}-${preset}-${showPositions}`}
@@ -286,7 +286,7 @@ export default function Research() {
         </div>
 
         {/* Positions Drawer */}
-        <div className="hidden relative md:flex items-start">
+        <div className="hidden relative md:flex items-start md:h-full">
           <div
             className={`overflow-hidden transform transition-transform duration-500 ease-in-out ${
               showPositions
@@ -302,7 +302,7 @@ export default function Research() {
               <span className="text-slate-400">→</span>
             </button>
 
-            <div className="overflow-y-auto w-96 pr-2">
+          <div className="overflow-y-auto w-96 pr-2 md:h-full">
               <Positions
                 selectedSymbol={symbol}
                 refreshKey={positionsRefreshKey}
