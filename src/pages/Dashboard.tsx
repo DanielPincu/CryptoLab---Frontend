@@ -82,7 +82,7 @@ export default function Dashboard() {
 
       <div className={`grid items-start ${showPositions ? 'grid-cols-[2fr_1fr_1fr]' : 'grid-cols-[2fr_1fr_48px]'} gap-6`}>
         {/* Column 1: Live Prices */}
-        <div className='rounded-lg border border-slate-800 bg-slate-950 p-3 min-h-screen'>
+        <div className='rounded-lg border border-slate-800 bg-slate-950 p-3'>
         <LivePrices
           selectedSymbol={selectedSymbol}
           onSelect={(symbol) => {
@@ -93,7 +93,7 @@ export default function Dashboard() {
         </div>
 
         {/* Column 2: Trade Panel */}
-        <div className="w-full relative pt-[3.75rem]">
+        <div className="w-full relative">
           <div className="mb-4 p-3 rounded-lg bg-slate-900 border border-slate-800">
             <div className="text-xs text-slate-400">Buying Power</div>
             <div className="text-lg font-semibold text-emerald-400">
@@ -118,7 +118,7 @@ export default function Dashboard() {
         </div>
 
         {/* Column 3: Positions Drawer / Handle */}
-        <div className="relative flex items-start pt-[3.75rem]">
+        <div className="relative flex items-start">
           <div
             className={`${showPositions ? 'w-full' : 'w-0'} overflow-hidden transform transition-all duration-300 ease-in-out ${
               showPositions ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0 pointer-events-none'
@@ -126,9 +126,9 @@ export default function Dashboard() {
           >
             <button
               onClick={() => setShowPositions(false)}
-              className="mb-2 w-full flex items-center justify-between px-4 py-2 rounded-lg border border-slate-800 bg-slate-700 hover:bg-slate-800 transition"
+              className="mb-2 flex items-center justify-between px-4 py-2 rounded-lg border border-slate-800 bg-slate-700 hover:bg-slate-800 transition"
             >
-              <span className="text-sm font-semibold text-slate-300 uppercase">Positions</span>
+              <span className="text-sm font-semibold text-slate-300 uppercase">Positions </span>
               <span className="text-slate-400">→</span>
             </button>
 
@@ -148,7 +148,7 @@ export default function Dashboard() {
             <div className="flex items-start justify-center w-12">
               <button
                 onClick={() => setShowPositions(true)}
-                className="flex min-h-[700px] flex-col items-center justify-center gap-2 px-2 py-3 rounded-l-lg border border-slate-900 bg-slate-700 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
+                className="flex min-h-[670px] flex-col items-center justify-center gap-2 px-2 py-3 rounded-l-lg border border-slate-900 bg-slate-700 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
               >
                 <span className="text-xs uppercase tracking-wide opacity-70">Positions</span>
                 <span className="text-lg">←</span>

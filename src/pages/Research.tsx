@@ -248,21 +248,16 @@ export default function Research() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
         <div className="rounded-lg border border-slate-800 bg-slate-950 p-3">
-          <div className="text-xs text-slate-400">Quote (REST)</div>
+          <div className="text-xs text-slate-400">Quote</div>
           <div className="mt-1 font-semibold text-emerald-300">
             {quote?.price ? quote.price.toFixed(4) : '—'}
           </div>
         </div>
-        <div className="rounded-lg border border-slate-800 bg-slate-950 p-3">
-          <div className="text-xs text-slate-400">Quote Time</div>
-          <div className="mt-1 font-semibold">
-            {quote?.ts ? new Date(quote.ts).toLocaleString() : '—'}
-          </div>
-        </div>
+        
       </div>
 
-      <div className="grid items-start gap-4 min-w-0 grid-cols-1 lg:grid-cols-12">
-        <div className={`min-w-0 ${showPositions ? 'lg:col-span-7' : 'lg:col-span-8'} rounded-lg border border-slate-800 bg-slate-950 p-3 h-[520px] lg:h-[600px]`}>
+      <div className={`grid items-start ${showPositions ? 'grid-cols-[2fr_1fr_1fr]' : 'grid-cols-[2fr_1fr_48px]'} gap-6`}>
+        <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950 p-3 h-[585px]">
           <ResearchGraph
             key={`${symbol}-${preset}-${showPositions}`}
             symbol={symbol}
@@ -270,7 +265,7 @@ export default function Research() {
           />
         </div>
 
-        <div className={`min-w-0 ${showPositions ? 'lg:col-span-3' : 'lg:col-span-3'} rounded-lg border border-slate-800 bg-slate-950 p-3`}>
+        <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950 p-3">
           <TradePanel
             symbol={symbol}
             currentPrice={quote?.price}
@@ -291,7 +286,7 @@ export default function Research() {
         </div>
 
         {/* Positions Drawer */}
-        <div className={`relative hidden lg:flex items-start ${showPositions ? 'lg:col-span-2' : 'lg:col-span-1'}`}>
+        <div className="relative flex items-start">
           <div
             className={`overflow-hidden transform transition-transform duration-500 ease-in-out ${
               showPositions
@@ -301,13 +296,13 @@ export default function Research() {
           >
             <button
               onClick={() => setShowPositions(false)}
-              className="mb-2 w-full flex items-center justify-between px-4 py-2 rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 transition"
+              className="mb-2 flex items-center justify-between px-4 py-2 rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 transition"
             >
               <span className="text-sm font-semibold text-slate-300 uppercase">Positions</span>
               <span className="text-slate-400">→</span>
             </button>
 
-            <div className="overflow-y-auto w-56 2xl:w-72 pr-2">
+            <div className="overflow-y-auto w-96 pr-2">
               <Positions
                 selectedSymbol={symbol}
                 refreshKey={positionsRefreshKey}
@@ -326,7 +321,7 @@ export default function Research() {
           >
             <button
               onClick={() => setShowPositions(true)}
-              className="flex min-h-[600px] flex-col items-center justify-center gap-2 px-2 py-3 rounded-l-lg border border-slate-900 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition"
+              className="flex min-h-[585px] flex-col items-center justify-center gap-2 px-2 py-3 rounded-l-lg border border-slate-900 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition"
             >
               <span className="text-xs uppercase tracking-wide opacity-70">Positions</span>
               <span className="text-lg">←</span>
