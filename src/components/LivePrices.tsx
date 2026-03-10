@@ -53,10 +53,12 @@ export default function LivePrices({
     return ticks
       .filter((t) => !account?.favorites || account.favorites.includes(t.symbol))
       .map((t) => {
-        const live = ws.prices[t.symbol]?.price
+        const live = ws.prices[t.symbol]
+
         return {
           ...t,
-          price: typeof live === 'number' ? live : t.price
+          price: typeof live?.price === 'number' ? live.price : t.price,
+          source: live?.source ?? t.source ?? (live ? 'finnhub' : 'binance')
         }
       })
   }, [ticks, ws.prices, account])
@@ -102,6 +104,27 @@ export default function LivePrices({
     })
   }, [rows])
 
+  // WS reconnect watchdog
+  useEffect(() => {
+    if (!ws || !ws.prices) return
+
+    const hasPrices = Object.keys(ws.prices).length > 0
+    if (hasPrices) return
+
+    const timer = setTimeout(() => {
+      try {
+        const maybeReconnect = (ws as unknown as { reconnect?: () => void })?.reconnect
+        if (typeof maybeReconnect === 'function') {
+          maybeReconnect()
+        }
+      } catch (e) {
+        console.error('WS reconnect attempt failed', e)
+      }
+    }, 3000)
+
+    return () => clearTimeout(timer)
+  }, [ws])
+
   if (loading) return <div className="p-6 text-slate-400">Loading market…</div>
   if (error) return <div className="p-6 text-rose-400">{error}</div>
 
@@ -144,11 +167,23 @@ export default function LivePrices({
                 ✕
               </button>
             </div>
-            <span className="font-semibold text-emerald-400">
-              {typeof t.price === 'number'
-                ? t.price.toFixed(4)
-                : 'waiting…'}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-emerald-400">
+                {typeof t.price === 'number'
+                  ? t.price.toFixed(4)
+                  : 'waiting…'}
+              </span>
+              <span
+                className={
+                  'text-[10px] px-1.5 py-0.5 rounded ' +
+                  (t.source === 'binance'
+                    ? 'bg-amber-500/20 text-amber-400'
+                    : 'bg-emerald-500/20 text-emerald-400')
+                }
+              >
+                {t.source === 'binance' ? 'REST API' : 'LIVE'}
+              </span>
+            </div>
           </div>
         ))}
       </div>

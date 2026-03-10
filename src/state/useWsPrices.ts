@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { http } from '../api/http.api'
 
-export type WsPrice = { symbol: string; price: number; time: number }
+export type WsPrice = { symbol: string; price: number; time: number; source?: 'finnhub' | 'binance' | 'backup' }
 
 function normalizeSymbol(s: string) {
   return String(s || '').replace(/^BINANCE:/i, '').toUpperCase().trim()
@@ -69,12 +69,13 @@ export function useWsPrices() {
         const symbol = normalizeSymbol(data?.symbol || data?.s)
         const price = Number(data?.price ?? data?.p)
         const time = Number(data?.time ?? data?.t ?? Date.now())
+        const source = data?.source as 'finnhub' | 'binance' | 'backup' | undefined
 
         if (!symbol || !Number.isFinite(price)) return
 
         setPrices((prev) => ({
           ...prev,
-          [symbol]: { symbol, price, time }
+          [symbol]: { symbol, price, time, source }
         }))
       }
 

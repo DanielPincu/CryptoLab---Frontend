@@ -30,9 +30,10 @@ export default function Positions({
 
   const livePositions = useMemo(() => {
     return sourcePositions.map((p) => {
-      const livePrice = ws.prices?.[p.symbol]?.price ?? p.currentPrice
-      const marketValue = livePrice * p.qty
-      const unrealizedPnl = (livePrice - p.avgEntryPrice) * p.qty
+      const livePrice = ws.prices?.[p.symbol]?.price ?? p.currentPrice ?? null
+      const marketValue = typeof livePrice === 'number' ? livePrice * p.qty : null
+      const unrealizedPnl =
+        typeof livePrice === 'number' ? (livePrice - p.avgEntryPrice) * p.qty : null
 
       return {
         ...p,
@@ -77,24 +78,24 @@ export default function Positions({
 
             <div className="flex justify-between text-slate-400">
               <span>Current Price</span>
-              <span>${p.currentPrice.toFixed(4)}</span>
+              <span>${typeof p.currentPrice === 'number' ? p.currentPrice.toFixed(4) : '—'}</span>
             </div>
 
             <div className="flex justify-between text-slate-400">
               <span>Market Value</span>
-              <span>${p.marketValue.toFixed(4)}</span>
+              <span>${typeof p.marketValue === 'number' ? p.marketValue.toFixed(4) : '—'}</span>
             </div>
 
             <div
               className={
                 "flex justify-between " +
-                (p.unrealizedPnl >= 0
+                (typeof p.unrealizedPnl === 'number' && p.unrealizedPnl >= 0
                   ? "text-emerald-400"
                   : "text-rose-400")
               }
             >
               <span>Unrealized PnL</span>
-              <span>${p.unrealizedPnl.toFixed(4)}</span>
+              <span>${typeof p.unrealizedPnl === 'number' ? p.unrealizedPnl.toFixed(4) : '—'}</span>
             </div>
           </div>
         ))
