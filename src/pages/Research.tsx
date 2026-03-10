@@ -307,7 +307,7 @@ export default function Research() {
               <span className="text-slate-400">→</span>
             </button>
 
-            <div className="overflow-y-auto w-64 pr-2  max-h-[calc(100vh-260px)]">
+            <div className="overflow-y-auto w-56 2xl:w-72 pr-2">
               <Positions
                 selectedSymbol={symbol}
                 refreshKey={positionsRefreshKey}

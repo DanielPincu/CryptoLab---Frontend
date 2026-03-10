@@ -106,5 +106,5 @@ export default function ResearchGraph({ symbol, preset }: Props) {
     }
   }, [symbol, preset])
 
-  return <canvas ref={canvasRef} className="w-full h-full"></canvas>
+  return <canvas ref={canvasRef} className="w-full h-screen"></canvas>
 }

@@ -61,7 +61,7 @@ export default function Positions({
             className={
               "cursor-pointer text-sm py-3 border-b border-slate-800 last:border-b-0 space-y-1 rounded transition " +
               (selectedSymbol === p.symbol
-                ? "bg-slate-800 ring-1 ring-blue-500 "
+                ? "bg-slate-800 ring-1 ring-blue-500 p-1"
                 : "hover:bg-slate-800/50 ")
             }
           >
