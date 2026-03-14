@@ -34,6 +34,7 @@ export default function Research() {
   const [preset, setPreset] = useState<HistoryPreset>('year')
   const [historyStatus, setHistoryStatus] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [warning, setWarning] = useState<string | null>(null)
   const [quote, setQuote] = useState<{ price?: number; ts?: number } | null>(null)
 
   const [favorites, setFavorites] = useState<string[]>([])
@@ -170,6 +171,18 @@ export default function Research() {
       setFavLoading(true)
       const res = await apiAccountRemoveFavorite(symbol)
       setFavorites(res.favorites.map((s: string) => normalizeSymbol(s)))
+    } catch (err: unknown) {
+      let message = 'Cannot unsubscribe while position is open'
+
+      if (typeof err === 'object' && err && 'response' in err) {
+        const e = err as { response?: { data?: { error?: string } } }
+        if (e.response?.data?.error) {
+          message = e.response.data.error
+        }
+      }
+
+      setWarning(message)
+      setTimeout(() => setWarning(null), 3000)
     } finally {
       setFavLoading(false)
     }
@@ -187,6 +200,12 @@ export default function Research() {
 
       {error && (
         <div className="text-rose-400 mb-4 text-sm">{error}</div>
+      )}
+
+      {warning && (
+        <div className="mb-4 rounded-md border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
+          {warning}
+        </div>
       )}
 
       <div className="flex flex-wrap items-center gap-4 mb-4">
