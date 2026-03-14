@@ -59,7 +59,7 @@ export default function LivePrices({
         return {
           ...t,
           price: typeof live?.price === 'number' ? live.price : t.price,
-          source: live?.source ?? t.source ?? (live ? 'finnhub' : 'binance')
+          source: live ? 'live' : 'binance'
         }
       })
   }, [ticks, ws.prices, account])
@@ -193,13 +193,13 @@ export default function LivePrices({
               </span>
               <span
                 className={
-                  'text-[10px] px-1.5 py-0.5 rounded ' +
+                  'text-[10px] text-center w-20 py-0.5 rounded ' +
                   (t.source === 'binance'
                     ? 'bg-amber-500/20 text-amber-400'
                     : 'bg-emerald-500/20 text-emerald-400')
                 }
               >
-                {t.source === 'binance' ? 'REST API' : 'LIVE'}
+                {t.source === 'live' ? 'LIVE' : 'Binance'}
               </span>
             </div>
           </div>
