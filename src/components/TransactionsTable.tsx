@@ -6,7 +6,7 @@ export default function TransactionsTable() {
   const [transactions, setTransactions] = useState<ITransaction[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [sideFilter, setSideFilter] = useState<'ALL' | 'BUY' | 'SELL'>('ALL')
+  const [sideFilter, setSideFilter] = useState<'ALL' | 'BUY' | 'SELL' | 'REWARD'>('ALL')
   const [pnlSort, setPnlSort] = useState<'ASC' | 'DESC'>('DESC')
 
 
@@ -88,6 +88,15 @@ export default function TransactionsTable() {
         >
           Sell
         </button>
+
+        <button
+          onClick={() => setSideFilter('REWARD')}
+          className={sideFilter === 'REWARD'
+            ? 'px-3 py-1 rounded bg-green-700 text-white'
+            : 'px-3 py-1 rounded bg-gray-900 text-gray-400 hover:bg-gray-800'}
+        >
+          Rewards
+        </button>
       </div>
 
       <div className="mt-2 flex flex-col gap-2">
@@ -107,7 +116,9 @@ export default function TransactionsTable() {
               key={t._id}
               className={`grid md:grid-cols-6 grid-cols-1 items-center rounded-lg border px-3 py-2 text-sm hover:bg-gray-800
 ${
-  typeof pnl === 'number'
+  t.side === 'REWARD'
+    ? 'border-green-800 bg-gray-900'
+    : typeof pnl === 'number'
     ? pnl >= 0
       ? 'border-green-800 bg-gray-900'
       : 'border-red-800 bg-gray-900'
@@ -120,7 +131,9 @@ ${
                 className={
                   t.side === 'BUY'
                     ? 'font-semibold text-green-400'
-                    : 'font-semibold text-red-400'
+                    : t.side === 'SELL'
+                    ? 'font-semibold text-red-400'
+                    : 'font-semibold text-green-400'
                 }
               >
                 {t.side}

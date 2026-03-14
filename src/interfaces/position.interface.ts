@@ -3,9 +3,13 @@ export interface Position {
   symbol: string
   qty: number
   avgEntryPrice: number
-  currentPrice: number
-  marketValue: number
-  unrealizedPnl: number
+
+  currentPrice: number | null
+  positionCost: number
+  marketValue: number | null
+  unrealizedPnl: number | null
+  unrealizedPnlPercent: number | null
+
   createdAt: string
   updatedAt: string
 }

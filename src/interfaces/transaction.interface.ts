@@ -2,7 +2,7 @@ export interface ITransaction {
   _id: string
   userId: string
   symbol: string
-  side: 'BUY' | 'SELL'
+  side: 'BUY' | 'SELL' | 'REWARD'
   qty: number
   price: number
   realizedPnl?: number

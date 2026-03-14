@@ -31,15 +31,22 @@ export default function Positions({
   const livePositions = useMemo(() => {
     return sourcePositions.map((p) => {
       const livePrice = ws.prices?.[p.symbol]?.price ?? p.currentPrice ?? null
-      const marketValue = typeof livePrice === 'number' ? livePrice * p.qty : null
-      const unrealizedPnl =
-        typeof livePrice === 'number' ? (livePrice - p.avgEntryPrice) * p.qty : null
+
+      if (livePrice == null) {
+        return { ...p, currentPrice: null }
+      }
+
+      const marketValue = livePrice * p.qty
+      const positionCost = p.positionCost
+      const unrealizedPnl = marketValue - positionCost
+      const unrealizedPnlPercent = positionCost > 0 ? (unrealizedPnl / positionCost) * 100 : null
 
       return {
         ...p,
         currentPrice: livePrice,
         marketValue,
-        unrealizedPnl
+        unrealizedPnl,
+        unrealizedPnlPercent
       }
     })
   }, [sourcePositions, ws.prices])
@@ -68,7 +75,11 @@ export default function Positions({
           >
             <div className="flex justify-between">
               <span className="font-mono font-semibold">{p.symbol}</span>
-              <span>{p.qty.toFixed(6)}</span>
+            </div>
+
+            <div className="flex justify-between text-slate-400">
+              <span>Quantity</span>
+              <span>{p.qty.toFixed(8)}</span>
             </div>
 
             <div className="flex justify-between text-slate-400">
@@ -78,24 +89,45 @@ export default function Positions({
 
             <div className="flex justify-between text-slate-400">
               <span>Current Price</span>
-              <span>${typeof p.currentPrice === 'number' ? p.currentPrice.toFixed(4) : '—'}</span>
+              <span>${p.currentPrice != null ? p.currentPrice.toFixed(4) : '—'}</span>
             </div>
 
             <div className="flex justify-between text-slate-400">
               <span>Market Value</span>
-              <span>${typeof p.marketValue === 'number' ? p.marketValue.toFixed(4) : '—'}</span>
+              <span>${p.marketValue != null ? p.marketValue.toFixed(4) : '—'}</span>
             </div>
 
             <div
               className={
                 "flex justify-between " +
-                (typeof p.unrealizedPnl === 'number' && p.unrealizedPnl >= 0
+                (p.unrealizedPnl != null
+                  ? p.unrealizedPnl < 0
+                    ? "text-rose-400"
+                    : "text-emerald-400"
+                  : "text-slate-400")
+              }
+            >
+              <span>Position Cost</span>
+              <span>${p.positionCost.toFixed(4)}</span>
+            </div>
+
+            <div
+              className={
+                "flex justify-between " +
+                (p.unrealizedPnl != null && p.unrealizedPnl >= 0
                   ? "text-emerald-400"
                   : "text-rose-400")
               }
             >
               <span>Unrealized PnL</span>
-              <span>${typeof p.unrealizedPnl === 'number' ? p.unrealizedPnl.toFixed(4) : '—'}</span>
+              <span>
+                ${p.unrealizedPnl != null ? p.unrealizedPnl.toFixed(4) : '—'}
+                {p.unrealizedPnlPercent != null && (
+                  <span className="ml-2 text-xs">
+                    ({p.unrealizedPnlPercent.toFixed(2)}%)
+                  </span>
+                )}
+              </span>
             </div>
           </div>
         ))
