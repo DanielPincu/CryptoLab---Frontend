@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useSession } from '../auth/Session'
 import { useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 
 import { getPortfolioSummary } from '../api/portfolioSummary.api'
@@ -21,6 +22,7 @@ type PortfolioSummary = {
 export default function Home() {
   const { isAuthenticated, user, isLoading, logout } = useSession()
   const navigate = useNavigate()
+  const location = useLocation()
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null)
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export default function Home() {
     getPortfolioSummary()
       .then((data) => setPortfolio(data as PortfolioSummary))
       .catch(() => {})
-  }, [isAuthenticated])
+  }, [isAuthenticated, location])
 
   if (isLoading) {
     return (
