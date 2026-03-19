@@ -63,19 +63,11 @@ export default function Home() {
               Welcome back, <span className="font-semibold text-emerald-300">{user?.username}</span> 👋
             </p>
 
-            {luckyStrike === null ? (
-              <div className="mb-6 p-4 rounded-lg border border-slate-800 bg-slate-900/60">
-                <div className="animate-pulse">
-                  <div className="h-4 w-40 bg-slate-700 rounded mb-3" />
-                  <div className="h-6 w-56 bg-slate-700 rounded mb-3" />
-                  <div className="h-3 w-72 bg-slate-700 rounded mb-3" />
-                  <div className="h-3 w-48 bg-slate-700 rounded mb-3" />
-                  <div className="h-2 w-full bg-slate-700 rounded" />
-                </div>
-              </div>
-            ) : luckyStrike && (
-              <LuckyStrikeCard luckyStrike={luckyStrike} />
-            )}
+          {/* Lucky Strike Card */}
+            <LuckyStrikeCard
+              loading={luckyStrike === null}
+              luckyStrike={luckyStrike}
+            />
 
             <div className="flex gap-3 w-full">
 
