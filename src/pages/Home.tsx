@@ -5,32 +5,21 @@ import { useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 
 import { getPortfolioSummary } from '../api/portfolioSummary.api'
-
-type LuckyStrike = {
-  progressPercent: number
-  remainingPercent: number
-  targetPercent: number
-  reward: number
-  achieved: boolean
-  startEquity: number
-}
-
-type PortfolioSummary = {
-  luckyStrike?: LuckyStrike
-}
+import type { LuckyStrike } from '../interfaces/luckyStrike.interface'
+import LuckyStrikeCard from '../components/LuckyStrikeCard'
 
 export default function Home() {
   const { isAuthenticated, user, isLoading, logout } = useSession()
   const navigate = useNavigate()
   const location = useLocation()
-  const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null)
+  const [luckyStrike, setLuckyStrike] = useState<LuckyStrike | null>(null)
 
   useEffect(() => {
     if (!isAuthenticated) return
 
     // setPortfolio(null) // removed to avoid synchronous setState in effect
     getPortfolioSummary()
-      .then((data) => setPortfolio(data as PortfolioSummary))
+      .then((data) => setLuckyStrike(data.luckyStrike ?? null))
       .catch(() => {})
   }, [isAuthenticated, location])
 
@@ -74,7 +63,7 @@ export default function Home() {
               Welcome back, <span className="font-semibold text-emerald-300">{user?.username}</span> 👋
             </p>
 
-            {portfolio === null ? (
+            {luckyStrike === null ? (
               <div className="mb-6 p-4 rounded-lg border border-slate-800 bg-slate-900/60">
                 <div className="animate-pulse">
                   <div className="h-4 w-40 bg-slate-700 rounded mb-3" />
@@ -84,43 +73,8 @@ export default function Home() {
                   <div className="h-2 w-full bg-slate-700 rounded" />
                 </div>
               </div>
-            ) : portfolio?.luckyStrike && (
-              <div className="mb-6 p-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5">
-                <div className="text-sm text-slate-400 mb-1">Lucky Strike Progress</div>
-
-                <div className="text-lg font-semibold text-emerald-300">
-                  {portfolio.luckyStrike.progressPercent}% / {portfolio.luckyStrike.targetPercent}%
-                </div>
-
-                <div className="text-xs text-slate-400 mb-2">
-                  {portfolio.luckyStrike.remainingPercent > 0
-                    ? `You need +${portfolio.luckyStrike.remainingPercent}% more to earn $${portfolio.luckyStrike.reward}`
-                    : 'Reward ready! Sell to claim 🎯'}
-                </div>
-
-                <div className="text-xs text-slate-500 mb-2">
-                  Start Balance: ${portfolio.luckyStrike.startEquity.toFixed(2)}
-                </div>
-
-                <div className={`text-xs font-medium mb-2 ${portfolio.luckyStrike.achieved ? 'text-emerald-400' : 'text-slate-500'}`}>
-                  {portfolio.luckyStrike.achieved ? 'Reward claimed ✅' : 'Reward not claimed'}
-                </div>
-
-                <div className="w-full h-2 bg-slate-800 rounded overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-400 transition-all"
-                    style={{
-                      width: `${Math.max(
-                        0,
-                        Math.min(
-                          100,
-                          (portfolio.luckyStrike.progressPercent / portfolio.luckyStrike.targetPercent) * 100
-                        )
-                      )}%`
-                    }}
-                  />
-                </div>
-              </div>
+            ) : luckyStrike && (
+              <LuckyStrikeCard luckyStrike={luckyStrike} />
             )}
 
             <div className="flex gap-3 w-full">

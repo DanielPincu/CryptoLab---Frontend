@@ -9,4 +9,12 @@ export interface PortfolioSummary {
   totalInvested: number
   totalSold: number
   updatedAt: string
+  luckyStrike?: {
+    progressPercent: number
+    remainingPercent: number
+    targetPercent: number
+    reward: number
+    achieved: boolean
+    startEquity: number
+  }
 }
