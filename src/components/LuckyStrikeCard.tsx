@@ -1,11 +1,20 @@
 import type { LuckyStrike } from '../interfaces/luckyStrike.interface'
+import { useEffect, useState } from 'react'
+import { getPortfolioSummary } from '../api/portfolioSummary.api'
 
-type Props = {
-  luckyStrike?: LuckyStrike | null
-  loading?: boolean
-}
+export default function LuckyStrikeCard() {
+  const [luckyStrike, setLuckyStrike] = useState<LuckyStrike | null>(null)
+  const [loading, setLoading] = useState(true)
 
-export default function LuckyStrikeCard({ luckyStrike, loading }: Props) {
+  useEffect(() => {
+    getPortfolioSummary()
+      .then((data) => {
+        setLuckyStrike(data.luckyStrike ?? null)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
   if (loading || !luckyStrike) {
     return (
       <div className="mb-6 p-4 rounded-lg border border-slate-800 bg-slate-900/60">

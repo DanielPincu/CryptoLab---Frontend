@@ -1,27 +1,12 @@
 import { Link } from 'react-router-dom'
 import { useSession } from '../auth/Session'
 import { useNavigate } from 'react-router-dom'
-import { useLocation } from 'react-router-dom'
-import { useEffect, useState } from 'react'
 
-import { getPortfolioSummary } from '../api/portfolioSummary.api'
-import type { LuckyStrike } from '../interfaces/luckyStrike.interface'
 import LuckyStrikeCard from '../components/LuckyStrikeCard'
 
 export default function Home() {
   const { isAuthenticated, user, isLoading, logout } = useSession()
   const navigate = useNavigate()
-  const location = useLocation()
-  const [luckyStrike, setLuckyStrike] = useState<LuckyStrike | null>(null)
-
-  useEffect(() => {
-    if (!isAuthenticated) return
-
-    // setPortfolio(null) // removed to avoid synchronous setState in effect
-    getPortfolioSummary()
-      .then((data) => setLuckyStrike(data.luckyStrike ?? null))
-      .catch(() => {})
-  }, [isAuthenticated, location])
 
   if (isLoading) {
     return (
@@ -64,10 +49,7 @@ export default function Home() {
             </p>
 
           {/* Lucky Strike Card */}
-            <LuckyStrikeCard
-              loading={luckyStrike === null}
-              luckyStrike={luckyStrike}
-            />
+            <LuckyStrikeCard />
 
             <div className="flex gap-3 w-full">
 
