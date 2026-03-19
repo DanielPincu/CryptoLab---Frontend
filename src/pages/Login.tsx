@@ -40,7 +40,7 @@ export default function Login() {
         localStorage.removeItem('rememberPassword')
       }
       await login(email, password)
-      navigate('/dashboard')
+      navigate('/home')
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : 'Login failed. Please try again.'
