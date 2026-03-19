@@ -28,6 +28,7 @@ export default function Home() {
   useEffect(() => {
     if (!isAuthenticated) return
 
+    // setPortfolio(null) // removed to avoid synchronous setState in effect
     getPortfolioSummary()
       .then((data) => setPortfolio(data as PortfolioSummary))
       .catch(() => {})
@@ -73,7 +74,17 @@ export default function Home() {
               Welcome back, <span className="font-semibold text-emerald-300">{user?.username}</span> 👋
             </p>
 
-            {portfolio?.luckyStrike && (
+            {portfolio === null ? (
+              <div className="mb-6 p-4 rounded-lg border border-slate-800 bg-slate-900/60">
+                <div className="animate-pulse">
+                  <div className="h-4 w-40 bg-slate-700 rounded mb-3" />
+                  <div className="h-6 w-56 bg-slate-700 rounded mb-3" />
+                  <div className="h-3 w-72 bg-slate-700 rounded mb-3" />
+                  <div className="h-3 w-48 bg-slate-700 rounded mb-3" />
+                  <div className="h-2 w-full bg-slate-700 rounded" />
+                </div>
+              </div>
+            ) : portfolio?.luckyStrike && (
               <div className="mb-6 p-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5">
                 <div className="text-sm text-slate-400 mb-1">Lucky Strike Progress</div>
 
