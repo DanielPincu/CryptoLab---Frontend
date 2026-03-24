@@ -13,6 +13,8 @@ export default function Register() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -38,7 +40,7 @@ export default function Register() {
     try {
       setLoading(true)
       await register(username.trim(), email.trim(), password)
-      navigate('/dashboard')
+      navigate('/home')
     } catch (err: unknown) {
       let msg = 'Registration failed'
       if (isAxiosError(err)) {
@@ -92,26 +94,46 @@ export default function Register() {
 
           <label className="block text-sm text-slate-300">
             Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500/40"
-              placeholder="••••••••"
-              autoComplete="new-password"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 pr-10 outline-none focus:ring-2 focus:ring-emerald-500/40"
+                placeholder="Type your password"
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-slate-300 hover:bg-slate-800"
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
           </label>
 
           <label className="block text-sm text-slate-300">
             Confirm password
-            <input
-              type="password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500/40"
-              placeholder="••••••••"
-              autoComplete="new-password"
-            />
+            <div className="relative">
+              <input
+                type={showConfirm ? 'text' : 'password'}
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 pr-10 outline-none focus:ring-2 focus:ring-emerald-500/40"
+                placeholder="Type your password again"
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                onClick={() => setShowConfirm((v) => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-slate-300 hover:bg-slate-800"
+              >
+                {showConfirm ? '🙈' : '👁️'}
+              </button>
+            </div>
           </label>
 
           <button
