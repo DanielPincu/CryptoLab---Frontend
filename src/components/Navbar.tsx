@@ -81,6 +81,18 @@ export default function Navbar() {
       >
         Leaderboard
       </NavLink>
+
+      <NavLink
+        to="/game"
+        onClick={() => setOpen(false)}
+        className={({ isActive }) =>
+          (isActive
+            ? 'text-emerald-400 font-semibold text-2xl'
+            : 'text-slate-300 hover:text-emerald-400 text-2xl')
+        }
+      >
+        Play Big Dollar
+      </NavLink>
     </>
   )
 
