@@ -1,7 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useWsPrices } from '../state/useWsPrices'
-import { getPositions } from '../api/positions.api'
-import type { Position } from '../interfaces/position.interface'
+import { useEffect } from 'react'
+import { usePositions } from '../hooks/usePositions'
 import type { PositionsProps } from '../interfaces/positionProps.interface'
 
 export default function Positions({
@@ -11,45 +9,10 @@ export default function Positions({
   refreshKey,
   onCountChange
 }: PositionsProps) {
-  const ws = useWsPrices()
-
-  const [internalPositions, setInternalPositions] = useState<Position[]>([])
-  const isControlled = positions !== undefined
-
-  useEffect(() => {
-    if (!isControlled) {
-      getPositions()
-        .then((data) => setInternalPositions(data ?? []))
-        .catch(() => setInternalPositions([]))
-    }
-  }, [isControlled, refreshKey])
-
-  const sourcePositions = useMemo(() => {
-    return isControlled ? positions ?? [] : internalPositions
-  }, [isControlled, positions, internalPositions])
-
-  const livePositions = useMemo(() => {
-    return sourcePositions.map((p) => {
-      const livePrice = ws.prices?.[p.symbol]?.price ?? p.currentPrice ?? null
-
-      if (livePrice == null) {
-        return { ...p, currentPrice: null }
-      }
-
-      const marketValue = livePrice * p.qty
-      const positionCost = p.positionCost
-      const unrealizedPnl = marketValue - positionCost
-      const unrealizedPnlPercent = positionCost > 0 ? (unrealizedPnl / positionCost) * 100 : null
-
-      return {
-        ...p,
-        currentPrice: livePrice,
-        marketValue,
-        unrealizedPnl,
-        unrealizedPnlPercent
-      }
-    })
-  }, [sourcePositions, ws.prices])
+  const { positions: livePositions } = usePositions({
+    positions,
+    refreshKey
+  })
 
   useEffect(() => {
     onCountChange?.(livePositions.length)
@@ -89,12 +52,16 @@ export default function Positions({
 
             <div className="flex justify-between text-slate-400">
               <span>Current Price</span>
-              <span>${p.currentPrice != null ? p.currentPrice.toFixed(4) : '—'}</span>
+              <span>
+                ${p.currentPrice != null ? p.currentPrice.toFixed(4) : '—'}
+              </span>
             </div>
 
             <div className="flex justify-between text-slate-400">
               <span>Market Value</span>
-              <span>${p.marketValue != null ? p.marketValue.toFixed(4) : '—'}</span>
+              <span>
+                ${p.marketValue != null ? p.marketValue.toFixed(4) : '—'}
+              </span>
             </div>
 
             <div
@@ -121,7 +88,9 @@ export default function Positions({
             >
               <span>Unrealized PnL</span>
               <span>
-                ${p.unrealizedPnl != null ? p.unrealizedPnl.toFixed(4) : '—'}
+                ${p.unrealizedPnl != null
+                  ? p.unrealizedPnl.toFixed(4)
+                  : '—'}
                 {p.unrealizedPnlPercent != null && (
                   <span className="ml-2 text-xs">
                     ({p.unrealizedPnlPercent.toFixed(2)}%)

@@ -9,7 +9,7 @@ import Navbar from './components/Navbar'
 import Portfolio from './pages/Positions'
 import Transactions from './pages/Transactions'
 import Leaderboard from './components/LeaderboardTable' 
-import GamePage from './pages/GamePage'
+import GamePage from './pages/Game'
 
 import { RequireAuth } from './auth/RequireAuth'
 
