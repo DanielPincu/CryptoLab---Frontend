@@ -1,28 +1,24 @@
-import { http } from './http.api'
+import { get, patch } from './http.api'
 import type { IAccount } from '../interfaces/account.interface'
 
 export async function apiAccountMe(): Promise<IAccount> {
-  const res = await http.get('/account/me')
-  return res.data
+  return await get('/account/me')
 }
 
 export async function apiAccountUpdate(
   payload: Partial<IAccount>
 ): Promise<IAccount> {
-  const res = await http.patch('/account/me', payload)
-  return res.data
+  return await patch('/account/me', payload)
 }
 
 // Add symbol to favorites
 export async function apiAccountAddFavorite(symbol: string): Promise<{ favorites: string[] }> {
-  const res = await http.patch('/account/favorites', { add: symbol })
-  return res.data
+  return await patch('/account/favorites', { add: symbol })
 }
 
 // Remove symbol from favorites
 export async function apiAccountRemoveFavorite(symbol: string): Promise<{ favorites: string[] }> {
-  const res = await http.patch('/account/favorites', { remove: symbol })
-  return res.data
+  return await patch('/account/favorites', { remove: symbol })
 }
 
 // Reset favorites to default list
@@ -32,9 +28,7 @@ export async function apiAccountResetFavorites(): Promise<{ favorites: string[] 
   'AVAXUSDT','DOTUSDT', 'LINKUSDT','TRXUSDT','ATOMUSDT','LTCUSDT'
   ]
 
-  const res = await http.patch('/account/favorites', {
+  return await patch('/account/favorites', {
     favorites: defaultFavorites
   })
-
-  return res.data
 }

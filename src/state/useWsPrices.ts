@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { http } from '../api/http.api'
+import { get } from '../api/http.api'
 
 export type WsPrice = { symbol: string; price: number; time: number; source?: 'finnhub' | 'binance' | 'backup' }
 
@@ -32,15 +32,15 @@ export function useWsPrices() {
       }
 
       const [meRes, accRes] = await Promise.all([
-        http.get('/user/me'),
-        http.get('/account/me')
+        get('/user/me'),
+        get('/account/me')
       ])
 
       const userId: string | undefined =
-        meRes?.data?.user?.id || meRes?.data?._id || meRes?.data?.id
+        meRes?.user?.id || meRes?._id || meRes?.id
 
-      const favorites: string[] = Array.isArray(accRes?.data?.favorites)
-        ? accRes.data.favorites.map(normalizeSymbol)
+      const favorites: string[] = Array.isArray(accRes?.favorites)
+        ? accRes.favorites.map(normalizeSymbol)
         : []
 
       // Ensure WebSocket protocol (ws / wss) instead of http / https

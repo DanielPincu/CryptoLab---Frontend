@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { isAxiosError } from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSession } from '../auth/Session'
 
@@ -42,10 +41,8 @@ export default function Register() {
       await register(username.trim(), email.trim(), password)
       navigate('/home')
     } catch (err: unknown) {
-      let msg = 'Registration failed'
-      if (isAxiosError(err)) {
-        msg = err.response?.data?.error || err.message || msg
-      }
+      const msg =
+        err instanceof Error ? err.message : 'Registration failed'
       setError(msg)
     } finally {
       setLoading(false)

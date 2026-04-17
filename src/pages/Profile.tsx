@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { http } from '../api/http.api'
+import { patch } from '../api/http.api'
 import { apiUserUpdateMe, apiUserMe } from '../api/user.api'
 import type { IUser } from '../interfaces/user.interface'
 
@@ -86,7 +86,7 @@ export default function Profile() {
       setProfileError(null)
       setSuccess(null)
 
-      await http.patch('/user/me/password', {
+      await patch('/user/me/password', {
         currentPassword: pwForm.currentPassword,
         newPassword: pwForm.newPassword
       })

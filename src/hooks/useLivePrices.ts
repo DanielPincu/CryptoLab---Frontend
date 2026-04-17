@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { http } from '../api/http.api'
+import { get } from '../api/http.api'
 import {
   apiAccountMe,
   apiAccountRemoveFavorite,
@@ -23,11 +23,11 @@ export function useLivePrices() {
     async function load() {
       try {
         const [market, acc] = await Promise.all([
-          http.get<IMarketTick[]>('/market/latest'),
+          get('/market/latest'),
           apiAccountMe()
         ])
 
-        setTicks(market.data)
+        setTicks(market)
         setAccount(acc)
       } catch {
         setError('Failed to load live prices')

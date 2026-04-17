@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { executeTrade } from '../api/trade.api'
 import { getPositions } from '../api/positions.api'
-import type { AxiosError } from 'axios'
 import type { TradePayload } from '../interfaces/tradePayload.interface'
 import type { Position } from '../interfaces/position.interface'
 
@@ -89,11 +88,7 @@ export function useTradePanel(
 
       setTimeout(() => setSuccess(null), 3000)
     } catch (err: unknown) {
-      const axiosErr = err as AxiosError<{ error?: string }>
-
-      if (axiosErr.response?.data?.error) {
-        setError(axiosErr.response.data.error)
-      } else if (err instanceof Error) {
+      if (err instanceof Error) {
         setError(err.message)
       } else {
         setError('Trade failed')

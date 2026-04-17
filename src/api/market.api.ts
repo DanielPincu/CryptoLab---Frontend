@@ -1,17 +1,15 @@
-import { http } from './http.api'
+import { get } from './http.api'
 import type { IMarketTick } from '../interfaces/marketTick.interface'
 
 
  // Latest prices for user's favorites
 
 export async function apiMarketLatest(): Promise<IMarketTick[]> {
-  const res = await http.get('/market/latest')
-  return res.data
+  return await get('/market/latest')
 }
 
 export async function apiMarketLatestBySymbol(symbol: string): Promise<IMarketTick> {
-  const res = await http.get(`/market/latest/${symbol}`)
-  return res.data
+  return await get(`/market/latest/${symbol}`)
 }
 
 
@@ -42,10 +40,7 @@ export async function apiMarketQuote(symbol: string): Promise<{
   ts: number
   source: string
 }> {
-  const res = await http.get('/market/quote', {
-    params: { symbol }
-  })
-  return res.data
+  return await get(`/market/quote?symbol=${symbol}`)
 }
 
 
@@ -67,8 +62,5 @@ export async function apiMarketHistory(
     volume: number
   }>
 }> {
-  const res = await http.get('/market/history', {
-    params: { symbol, interval, limit }
-  })
-  return res.data
+  return await get(`/market/history?symbol=${symbol}&interval=${interval}&limit=${limit}`)
 }
