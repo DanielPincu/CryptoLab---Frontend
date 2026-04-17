@@ -1,144 +1,29 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
-import { Chart } from 'chart.js/auto'
+import { useEffect } from 'react'
+import { useResearch } from '../hooks/useResearch'
 import TradePanel from '../components/TradePanel'
 import Positions from '../components/Positions'
 import ResearchGraph from '../components/ResearchGraph'
-import {
-  apiMarketSymbols,
-  apiMarketHistory,
-  apiMarketQuote
-} from '../api/market.api'
-import {
-  apiAccountMe,
-  apiAccountAddFavorite,
-  apiAccountRemoveFavorite
-} from '../api/account.api'
-
-type HistoryPreset = 'day' | 'week' | 'month' | '6m' | 'year'
-
-const PRESETS: Record<HistoryPreset, { interval: string; limit: number; label: string }> = {
-  day: { interval: '1h', limit: 24, label: 'Last day' },
-  week: { interval: '1d', limit: 7, label: 'Last week' },
-  month: { interval: '1d', limit: 30, label: 'Last month' },
-  '6m': { interval: '1w', limit: 26, label: 'Last 6 months' },
-  year: { interval: '1w', limit: 52, label: 'Last year' }
-}
-
-function normalizeSymbol(s: string) {
-  return String(s || '').replace(/^BINANCE:/i, '').toUpperCase().trim()
-}
 
 export default function Research() {
-  const [symbols, setSymbols] = useState<Array<{ symbol: string }>>([])
-  const [symbol, setSymbol] = useState<string>('BTCUSDT')
-  const [preset, setPreset] = useState<HistoryPreset>('year')
-  const [historyStatus, setHistoryStatus] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [warning, setWarning] = useState<string | null>(null)
-  const [quote, setQuote] = useState<{ price?: number; ts?: number } | null>(null)
-
-  const [favorites, setFavorites] = useState<string[]>([])
-  const [accountCash, setAccountCash] = useState<number>(0)
-  const [favLoading, setFavLoading] = useState(false)
-  const [showPositions, setShowPositions] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false
-    const saved = localStorage.getItem('research:positions')
-    if (!saved) return false
-    return saved === 'open'
-  })
-  const [selectedPositionQty, setSelectedPositionQty] = useState<number>(0)
-  const [positionsRefreshKey, setPositionsRefreshKey] = useState(0)
-
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const chartRef = useRef<Chart | null>(null)
-
-  const loadHistory = useCallback(
-    async (nextPreset: HistoryPreset = preset, nextSymbol: string = symbol) => {
-      setHistoryStatus('Loading…')
-      const cfg = PRESETS[nextPreset]
-
-      try {
-        const res = await apiMarketHistory(nextSymbol, cfg.interval, cfg.limit)
-
-        const labels = res.candles.map((c) =>
-          new Date(c.time).toLocaleDateString()
-        )
-        const closes = res.candles.map((c) => c.close)
-
-        const ctx = canvasRef.current?.getContext('2d')
-        if (!ctx) return
-
-        if (chartRef.current) chartRef.current.destroy()
-
-        chartRef.current = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: `${nextSymbol} (${cfg.label})`,
-                data: closes,
-                tension: 0.25,
-                borderColor: '#10b981',
-                backgroundColor: '#10b981'
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { display: true }
-            },
-            scales: {
-              x: {
-                ticks: { maxTicksLimit: 8 }
-              },
-              y: {
-                display: true
-              }
-            }
-          }
-        })
-
-        setHistoryStatus('')
-      } catch {
-        setHistoryStatus('Failed to load history')
-      }
-    },
-    [preset, symbol]
-  )
-
-  const loadQuote = useCallback(async (nextSymbol: string = symbol) => {
-    try {
-      const q = await apiMarketQuote(nextSymbol)
-      setQuote({
-        price: Number(q?.price),
-        ts: Number(q?.ts)
-      })
-    } catch {
-      // silent fail
-    }
-  }, [symbol])
-
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const [symbolData, me] = await Promise.all([
-          apiMarketSymbols(),
-          apiAccountMe()
-        ])
-
-        setSymbols(symbolData)
-        setFavorites((me?.favorites ?? []).map((s: string) => normalizeSymbol(s)))
-        setAccountCash(Number(me?.cashBalance ?? 0))
-      } catch {
-        setError('Failed to load data')
-      }
-    }
-
-    void init()
-    // Load initial chart for default symbol
-  }, [loadHistory, loadQuote])
+  const {
+    symbols,
+    symbol, setSymbol,
+    preset, setPreset,
+    historyStatus,
+    error,
+    warning,
+    quote,
+    accountCash,
+    favLoading,
+    showPositions, setShowPositions,
+    selectedPositionQty, setSelectedPositionQty,
+    positionsRefreshKey, setPositionsRefreshKey,
+    isFavorite,
+    handleAddFavorite,
+    handleRemoveFavorite,
+    presetButtons,
+    loadQuote
+  } = useResearch()
 
   useEffect(() => {
     if (symbol) {
@@ -154,50 +39,9 @@ export default function Research() {
     }
   }, [showPositions])
 
-  const isFavorite = favorites.includes(symbol)
-
-  async function handleAddFavorite() {
-    try {
-      setFavLoading(true)
-      const res = await apiAccountAddFavorite(symbol)
-      setFavorites(res.favorites.map((s: string) => normalizeSymbol(s)))
-    } finally {
-      setFavLoading(false)
-    }
-  }
-
-  async function handleRemoveFavorite() {
-    try {
-      setFavLoading(true)
-      const res = await apiAccountRemoveFavorite(symbol)
-      setFavorites(res.favorites.map((s: string) => normalizeSymbol(s)))
-    } catch (err: unknown) {
-      let message = 'Cannot unsubscribe while position is open'
-
-      if (typeof err === 'object' && err && 'response' in err) {
-        const e = err as { response?: { data?: { error?: string } } }
-        if (e.response?.data?.error) {
-          message = e.response.data.error
-        }
-      }
-
-      setWarning(message)
-      setTimeout(() => setWarning(null), 3000)
-    } finally {
-      setFavLoading(false)
-    }
-  }
-
-
-  const presetButtons = useMemo(
-    () => Object.entries(PRESETS) as Array<[HistoryPreset, typeof PRESETS[HistoryPreset]]>,
-    []
-  )
-
   return (
     <div className="p-6 mx-auto overflow-x-hidden md:h-[calc(100vh-73px)] ">
-      <h1 className="text-xl font-semibold mb-4">Research</h1>
-
+      
       {error && (
         <div className="text-rose-400 mb-4 text-sm">{error}</div>
       )}
@@ -212,7 +56,7 @@ export default function Research() {
         <select
           value={symbol}
           onChange={(e) => {
-            const v = normalizeSymbol(e.target.value)
+            const v = e.target.value.toUpperCase().trim()
             setSymbol(v)
             setPreset('year')
           }}
@@ -290,22 +134,9 @@ export default function Research() {
             currentPrice={quote?.price}
             availableCash={accountCash}
             positionQty={selectedPositionQty}
-            onSuccess={async () => {
+            onSuccess={() => {
               void loadQuote(symbol)
-
-              try {
-                const me = await apiAccountMe()
-
-                setAccountCash(Number(me?.cashBalance ?? 0))
-
-                // refresh favorites so websocket subscriptions update
-                setFavorites((me?.favorites ?? []).map((s: string) => normalizeSymbol(s)))
-
-                // refresh positions
-                setPositionsRefreshKey((k) => k + 1)
-              } catch {
-                // ignore refresh error
-              }
+              setPositionsRefreshKey((k) => k + 1)
             }}
           />
         </div>

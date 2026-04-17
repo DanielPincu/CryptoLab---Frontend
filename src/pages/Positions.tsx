@@ -24,11 +24,11 @@ export default function Portfolio() {
   }, [])
 
   return (
-    <div className="p-6 mx-auto">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="p-6 mx-auto h-screen overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
 
         {/* Column 1: Positions */}
-        <div>
+        <div className="h-full overflow-y-auto pr-2">
           <Positions
             selectedSymbol={selectedSymbol}
             onSelect={(symbol, qty) => {
@@ -42,7 +42,7 @@ export default function Portfolio() {
 
         {/* Column 2: Trade */}
         {positionsCount > 0 && (
-          <div>
+          <div className="h-full">
             <TradePanel
               symbol={selectedSymbol ?? undefined}
               currentPrice={selectedPrice}
