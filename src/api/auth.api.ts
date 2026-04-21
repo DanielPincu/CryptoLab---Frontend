@@ -12,3 +12,7 @@ export async function apiRegister(payload: IRegisterPayload) {
 export async function apiMe() {
   return await get('/user/me')
 }
+
+export async function apiLogout() {
+  return await post('/user/logout', {})
+}

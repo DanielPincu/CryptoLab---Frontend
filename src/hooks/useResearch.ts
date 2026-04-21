@@ -51,6 +51,16 @@ export function useResearch() {
     }
   }, [symbol])
 
+  const loadAccount = useCallback(async () => {
+    try {
+      const me = await apiAccountMe()
+      setFavorites((me?.favorites ?? []).map((s: string) => normalizeSymbol(s)))
+      setAccountCash(Number(me?.cashBalance ?? 0))
+    } catch {
+      // silent fail
+    }
+  }, [])
+
   // --- init ---
   useEffect(() => {
     const init = async () => {
@@ -137,6 +147,7 @@ export function useResearch() {
     handleAddFavorite,
     handleRemoveFavorite,
     presetButtons,
-    loadQuote
+    loadQuote,
+    loadAccount,
   }
 }

@@ -13,8 +13,8 @@ export default function Navbar() {
   }, [])
 
   async function onLogout() {
-    logout()
-    navigate('/login')
+    await logout()
+    navigate('/')
     setOpen(false)
   }
 

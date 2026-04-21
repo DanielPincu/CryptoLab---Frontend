@@ -1,12 +1,16 @@
 import { Link } from 'react-router-dom'
 import { useSession } from '../auth/Session'
 import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 
 import LuckyStrikeCard from '../components/LuckyStrikeCard'
 
 export default function Home() {
   const { isAuthenticated, user, isLoading, logout } = useSession()
   const navigate = useNavigate()
+  const [cookieDismissed, setCookieDismissed] = useState(() => !!localStorage.getItem('cookieNoticeSeen'))
+
+  const shouldShowCookiePopup = isAuthenticated && !cookieDismissed
 
   if (isLoading) {
     return (
@@ -48,6 +52,10 @@ export default function Home() {
               Welcome back, <span className="font-semibold text-emerald-300">{user?.username}</span> 👋
             </p>
 
+            <p className="text-xs text-slate-500 mb-4">
+              Authentication uses HTTP-only cookies (JWT stored in cookie). No tokens are stored in localStorage.
+            </p>
+
           {/* Lucky Strike Card */}
             <LuckyStrikeCard />
 
@@ -75,9 +83,9 @@ export default function Home() {
               </Link>
 
               <button
-                onClick={() => {
-                  logout()
-                  navigate('/login')
+                onClick={async () => {
+                  await logout()
+                  navigate('/')
                 }}
                 className="flex-1 text-center px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/40 text-red-300 hover:bg-red-500/20 transition"
               >
@@ -89,6 +97,25 @@ export default function Home() {
           </>
         )}
       </div>
+      {shouldShowCookiePopup && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl py-6 max-w-sm w-full text-center shadow-xl">
+            <h2 className="text-lg font-semibold mb-2">Cookies Notice</h2>
+            <p className="text-sm text-slate-400 mb-4">
+              This app uses HTTP-only cookies for authentication. <br /> No tokens are stored in localStorage.
+            </p>
+            <button
+              onClick={() => {
+                localStorage.setItem('cookieNoticeSeen', 'true')
+                setCookieDismissed(true)
+              }}
+              className="px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/20 transition"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

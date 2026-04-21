@@ -22,7 +22,8 @@ export default function Research() {
     handleAddFavorite,
     handleRemoveFavorite,
     presetButtons,
-    loadQuote
+    loadQuote,
+    loadAccount
   } = useResearch()
 
   useEffect(() => {
@@ -136,6 +137,7 @@ export default function Research() {
             positionQty={selectedPositionQty}
             onSuccess={() => {
               void loadQuote(symbol)
+              void loadAccount()
               setPositionsRefreshKey((k) => k + 1)
             }}
           />

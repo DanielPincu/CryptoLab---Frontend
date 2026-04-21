@@ -17,12 +17,6 @@ export function useWsPrices() {
     let cancelled = false
 
     async function connect() {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        setStatus('closed')
-        return
-      }
-
       setStatus('connecting')
       setPrices({})
 
@@ -52,7 +46,6 @@ export function useWsPrices() {
       const params = new URLSearchParams()
       if (userId) params.set('userId', userId)
       if (favorites.length) params.set('favorites', favorites.join(','))
-      if (token) params.set('token', token)
 
       const url = params.toString() ? `${base}?${params.toString()}` : base
 
