@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSession } from '../auth/Session';
 
@@ -6,21 +6,13 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useSession()
 
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => localStorage.getItem('rememberEmail') || '')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState<boolean>(() => Boolean(localStorage.getItem('rememberEmail')))
-  const [rememberPassword, setRememberPassword] = useState<boolean>(() => Boolean(localStorage.getItem('rememberPassword')))
 
-  useEffect(() => {
-    const rememberedEmail = localStorage.getItem('rememberEmail')
-    if (rememberedEmail) setEmail(rememberedEmail)
-
-    const rememberedPassword = localStorage.getItem('rememberPassword')
-    if (rememberedPassword) setPassword(rememberedPassword)
-  }, [])
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -34,11 +26,6 @@ export default function Login() {
         localStorage.removeItem('rememberEmail')
       }
 
-      if (rememberPassword) {
-        localStorage.setItem('rememberPassword', password)
-      } else {
-        localStorage.removeItem('rememberPassword')
-      }
       await login(email, password)
       navigate('/home')
     } catch (err: unknown) {
@@ -115,18 +102,7 @@ export default function Login() {
                 disabled={submitting}
                 className="h-4 w-4 rounded border-slate-700 bg-slate-950"
               />
-              Remember email
-            </label>
-
-            <label className="flex items-center gap-2 text-sm text-slate-300">
-              <input
-                type="checkbox"
-                checked={rememberPassword}
-                onChange={(e) => setRememberPassword(e.target.checked)}
-                disabled={submitting}
-                className="h-4 w-4 rounded border-slate-700 bg-slate-950"
-              />
-              Remember password (not recommended on shared devices)
+              Remember email on this device
             </label>
           </div>
 
