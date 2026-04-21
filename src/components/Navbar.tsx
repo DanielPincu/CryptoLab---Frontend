@@ -47,7 +47,7 @@ export default function Navbar() {
       </NavLink>
 
       <NavLink
-        to="/portfolio"
+        to="/positions"
         onClick={() => setOpen(false)}
         className={({ isActive }) =>
           isActive
@@ -55,7 +55,7 @@ export default function Navbar() {
             : 'text-slate-300 hover:text-emerald-400'
         }
       >
-        Portfolio
+        Positions
       </NavLink>
 
       <NavLink

@@ -6,7 +6,7 @@ import Research from './pages/Research'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
 import Navbar from './components/Navbar'
-import Portfolio from './pages/Positions'
+import Positions from './pages/Positions'
 import Transactions from './pages/Transactions'
 import Leaderboard from './components/LeaderboardTable' 
 import GamePage from './pages/Game'
@@ -40,10 +40,10 @@ function App() {
         />
 
         <Route
-          path="/portfolio"
+          path="/positions"
           element={
             <RequireAuth>
-              <Portfolio />
+              <Positions />
             </RequireAuth>
           }
         />

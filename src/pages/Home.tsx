@@ -69,17 +69,17 @@ export default function Home() {
               </Link>
 
               <Link
-                to="/transactions"
+                to="/positions"
                 className="flex-1 text-center px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/20 transition"
               >
-                Transactions
+                Positions
               </Link>
 
               <Link
-                to="/portfolio"
-                className="flex-1 text-center px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/20 transition"
+                to="/transactions"
+                className="hidden md:block flex-1 text-center px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/20 transition"
               >
-                Portfolio
+                Transactions
               </Link>
 
               <button
