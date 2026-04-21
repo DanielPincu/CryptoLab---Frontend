@@ -53,6 +53,7 @@ export default function TradePanel({
         />
         <button
           disabled={noSymbol}
+          data-testid="toggle-buy"
           className={`relative flex-1 py-1 text-xs tracking-wide rounded-md transition-all duration-200 font-semibold z-10 flex items-center justify-center
   ${side === 'BUY' ? 'text-white scale-150' : 'text-gray-400'}
   ${noSymbol ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
@@ -67,6 +68,7 @@ export default function TradePanel({
 
         <button
           disabled={noSymbol || qtyOwned <= 0}
+          data-testid="toggle-sell"
           className={`relative flex-1 py-1 text-xs tracking-wide rounded-md transition-all duration-200 font-semibold z-10 flex items-center justify-center
   ${side === 'SELL' ? 'text-white scale-150' : 'text-gray-400'}
   ${(qtyOwned <= 0 || noSymbol) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
@@ -83,6 +85,7 @@ export default function TradePanel({
       <div className="flex gap-4 mb-4">
         <button
           disabled={noSymbol}
+          data-testid="mode-qty"
           className={`flex-1 p-2 rounded ${mode === 'QTY' ? 'bg-blue-600' : 'bg-gray-700'} ${noSymbol ? 'opacity-50 cursor-not-allowed' : ''}`}
           onClick={() => {
             if (noSymbol) return
@@ -94,6 +97,7 @@ export default function TradePanel({
         </button>
         <button
           disabled={noSymbol}
+          data-testid="mode-usd"
           className={`flex-1 p-2 rounded ${mode === 'USD' ? 'bg-blue-600' : 'bg-gray-700'} ${noSymbol ? 'opacity-50 cursor-not-allowed' : ''}`}
           onClick={() => {
             if (noSymbol) return
@@ -108,6 +112,7 @@ export default function TradePanel({
       <input
         type="text"
         inputMode="decimal"
+        data-testid="trade-input"
         value={value}
         onChange={(e) => {
           const raw = e.target.value
@@ -166,11 +171,12 @@ export default function TradePanel({
 
       <div className="min-h-[48px] mb-2">
         {error && <div className="text-red-400 text-sm">{error}</div>}
-        {success && <div className="text-green-400 text-sm">{success}</div>}
+        {success && <div data-testid="trade-success" className="text-green-400 text-sm">{success}</div>}
       </div>
 
       <button
         onClick={handleSubmit}
+        data-testid="trade-submit"
         disabled={
           noSymbol ||
           loading ||

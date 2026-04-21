@@ -65,6 +65,7 @@ export default function Login() {
               placeholder="you@example.com"
               autoComplete="email"
               required
+              data-testid="email-input"
             />
           </label>
 
@@ -80,6 +81,7 @@ export default function Login() {
                 placeholder="Enter your password"
                 autoComplete="current-password"
                 required
+                data-testid="password-input"
               />
               <button
                 type="button"
@@ -110,6 +112,7 @@ export default function Login() {
             type="submit"
             disabled={submitting}
             className="w-full rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-emerald-200 hover:bg-emerald-500/15 disabled:opacity-60"
+            data-testid="login-submit"
           >
             {submitting ? 'Signing in…' : 'Sign in'}
           </button>
