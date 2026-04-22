@@ -10,10 +10,15 @@ function normalizeSymbol(s: string) {
   return String(s || '').replace(/^BINANCE:/i, '').toUpperCase().trim()
 }
 
-export function useWsPrices() {
+export function useWsPrices(extraSymbols: string[] = []) {
   const [status, setStatus] = useState<'connecting' | 'open' | 'closed' | 'error'>('connecting')
   const wsRef = useRef<WebSocket | null>(null)
   const prices = usePriceStore((state) => state.prices)
+  const extraSymbolsKey = extraSymbols
+    .map(normalizeSymbol)
+    .filter(Boolean)
+    .sort()
+    .join(',')
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
@@ -43,6 +48,7 @@ export function useWsPrices() {
         : Array.isArray(accRes?.favorites)
           ? accRes.favorites.map(normalizeSymbol)
           : []
+      const requestedSymbols = [...new Set([...favorites, ...extraSymbolsKey.split(',').filter(Boolean)])]
 
       // Ensure WebSocket protocol (ws / wss) instead of http / https
       const httpBase = `${import.meta.env.VITE_API_URL}/market/latest`
@@ -52,7 +58,7 @@ export function useWsPrices() {
 
       const params = new URLSearchParams()
       if (userId) params.set('userId', userId)
-      if (favorites.length) params.set('favorites', favorites.join(','))
+      if (requestedSymbols.length) params.set('favorites', requestedSymbols.join(','))
 
       const url = params.toString() ? `${base}?${params.toString()}` : base
 
@@ -97,7 +103,7 @@ export function useWsPrices() {
       if (timer) clearTimeout(timer)
       wsRef.current?.close()
     }
-  }, [])
+  }, [extraSymbolsKey])
 
   return { status, prices: prices as Record<string, WsPrice> }
 }

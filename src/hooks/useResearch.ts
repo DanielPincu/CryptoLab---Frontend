@@ -11,6 +11,7 @@ import { loadAccountIntoStore } from '../state/storeLoaders'
 import { useAccountStore } from '../state/useAccountStore'
 
 export type HistoryPreset = 'day' | 'week' | 'month' | '6m' | 'year'
+const EMPTY_FAVORITES: string[] = []
 
 function normalizeSymbol(s: string) {
   return String(s || '').replace(/^BINANCE:/i, '').toUpperCase().trim()
@@ -25,7 +26,7 @@ export function useResearch() {
   const [warning, setWarning] = useState<string | null>(null)
   const [quote, setQuote] = useState<{ price?: number; ts?: number } | null>(null)
   const [favLoading, setFavLoading] = useState(false)
-  const favorites = useAccountStore((state) => state.account?.favorites ?? [])
+  const favorites = useAccountStore((state) => state.account?.favorites ?? EMPTY_FAVORITES)
   const updateFavorites = useAccountStore((state) => state.updateFavorites)
 
   const [showPositions, setShowPositions] = useState<boolean>(() => {

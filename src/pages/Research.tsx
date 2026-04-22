@@ -3,6 +3,7 @@ import { useResearch } from '../hooks/useResearch'
 import TradePanel from '../components/TradePanel'
 import Positions from '../components/Positions'
 import ResearchGraph from '../components/ResearchGraph'
+import { useWsPrices } from '../state/useWsPrices'
 
 export default function Research() {
   const {
@@ -23,6 +24,9 @@ export default function Research() {
     loadQuote,
     loadAccount
   } = useResearch()
+  const ws = useWsPrices(symbol ? [symbol] : [])
+  const livePrice = symbol ? ws.prices?.[symbol]?.price : undefined
+  const currentPrice = livePrice ?? quote?.price
 
   useEffect(() => {
     if (symbol) {
@@ -112,7 +116,7 @@ export default function Research() {
         <div className="rounded-lg border border-slate-800 bg-slate-950 p-3">
           <div className="text-xs text-slate-400">Quote</div>
           <div className="mt-1 font-semibold text-emerald-300">
-            {quote?.price ? quote.price.toFixed(4) : '—'}
+            {currentPrice ? currentPrice.toFixed(4) : '—'}
           </div>
         </div>
         
@@ -130,7 +134,7 @@ export default function Research() {
         <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950 p-3">
           <TradePanel
             symbol={symbol}
-            currentPrice={quote?.price}
+            currentPrice={currentPrice}
             onSuccess={() => {
               void loadQuote(symbol)
               void loadAccount()

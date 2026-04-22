@@ -8,12 +8,14 @@ import { loadAccountIntoStore, loadLatestPricesIntoStore } from '../state/storeL
 import { useAccountStore } from '../state/useAccountStore'
 import { usePriceStore } from '../state/usePriceStore'
 
+const EMPTY_FAVORITES: string[] = []
+
 export function useLivePrices() {
   const [ticks, setTicks] = useState<IMarketTick[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [updating, setUpdating] = useState(false)
-  const favorites = useAccountStore((state) => state.account?.favorites ?? [])
+  const favorites = useAccountStore((state) => state.account?.favorites ?? EMPTY_FAVORITES)
   const updateFavorites = useAccountStore((state) => state.updateFavorites)
   const livePriceMap = usePriceStore((state) => state.prices)
 
