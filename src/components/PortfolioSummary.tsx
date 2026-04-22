@@ -1,16 +1,21 @@
-import { useEffect, useState } from 'react'
-import { getPortfolioSummary } from '../api/portfolioSummary.api'
-import type { PortfolioSummary } from '../interfaces/portfolioSummary.interface'
-import { useWsPrices } from '../state/useWsPrices'
+import { useEffect, useMemo, useState } from 'react'
+import { loadPortfolioSummaryIntoStore } from '../state/storeLoaders'
+import { usePortfolioStore } from '../state/usePortfolioStore'
+import { useAccountStore } from '../state/useAccountStore'
+import { usePositionStore } from '../state/usePositionStore'
+import { usePriceStore } from '../state/usePriceStore'
 
 interface Props {
   refreshKey?: number
 }
 
 export default function PortfolioSummary({ refreshKey }: Props) {
-  const [summary, setSummary] = useState<PortfolioSummary | null>(null)
   const [loading, setLoading] = useState(true)
-  const ws = useWsPrices()
+  const [error, setError] = useState<string | null>(null)
+  const summary = usePortfolioStore((state) => state.summary)
+  const cashBalance = useAccountStore((state) => state.account?.cashBalance ?? null)
+  const positions = usePositionStore((state) => state.positions)
+  const prices = usePriceStore((state) => state.prices)
 
   // initial load
   useEffect(() => {
@@ -24,24 +29,55 @@ export default function PortfolioSummary({ refreshKey }: Props) {
     }
   }, [refreshKey])
 
-  // refresh when websocket prices update
-  useEffect(() => {
-    if (ws?.prices) {
-      load()
-    }
-  }, [ws?.prices])
-
   async function load() {
     try {
-      const data = await getPortfolioSummary()
-      setSummary(data)
+      setError(null)
+      await loadPortfolioSummaryIntoStore()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load portfolio summary')
     } finally {
       setLoading(false)
     }
   }
 
+  const liveSummary = useMemo(() => {
+    if (!summary) return null
+
+    const nextCashBalance = cashBalance ?? summary.cashBalance ?? 0
+
+    const livePositions = positions.map((position) => {
+      const livePrice = prices[position.symbol]?.price ?? position.currentPrice ?? null
+      const marketValue = livePrice == null ? position.marketValue ?? 0 : livePrice * position.qty
+      const unrealizedPnl = marketValue - position.positionCost
+
+      return {
+        marketValue,
+        unrealizedPnl
+      }
+    })
+
+    const positionsValue = livePositions.reduce((total, position) => total + position.marketValue, 0)
+    const unrealizedPnl = livePositions.reduce((total, position) => total + position.unrealizedPnl, 0)
+    const totalValue = nextCashBalance + positionsValue
+    const netPnl = (summary.realizedPnl ?? 0) + unrealizedPnl
+    const totalReturnPct =
+      summary.totalInvested > 0 ? netPnl / summary.totalInvested : 0
+
+    return {
+      ...summary,
+      cashBalance: nextCashBalance,
+      positionsValue,
+      totalValue,
+      unrealizedPnl,
+      netPnl,
+      totalReturnPct,
+      updatedAt: new Date().toISOString()
+    }
+  }, [cashBalance, positions, prices, summary])
+
   if (loading) return <div>Loading overview...</div>
-  if (!summary) return <div>No portfolio data</div>
+  if (error) return <div className="text-rose-400">{error}</div>
+  if (!liveSummary) return <div>No portfolio data</div>
 
   const pnlColor = (v: number) => (v >= 0 ? 'text-emerald-400' : 'text-rose-400')
 
@@ -50,7 +86,7 @@ export default function PortfolioSummary({ refreshKey }: Props) {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm uppercase tracking-wide text-slate-400">Portfolio Overview</h2>
         <span className="text-xs text-slate-500">
-          Updated {new Date(summary.updatedAt).toLocaleTimeString()}
+          Updated {new Date(liveSummary.updatedAt).toLocaleTimeString()}
         </span>
       </div>
 
@@ -59,63 +95,63 @@ export default function PortfolioSummary({ refreshKey }: Props) {
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Total Value</div>
           <div className="text-lg font-semibold text-white">
-            ${(summary.totalValue ?? 0).toFixed(2)}
+            ${(liveSummary.totalValue ?? 0).toFixed(2)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Cash Balance</div>
           <div className="text-lg font-semibold text-white">
-            ${(summary.cashBalance ?? 0).toFixed(2)}
+            ${(liveSummary.cashBalance ?? 0).toFixed(2)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Positions Value</div>
           <div className="text-lg font-semibold text-white">
-            ${(summary.positionsValue ?? 0).toFixed(2)}
+            ${(liveSummary.positionsValue ?? 0).toFixed(2)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Unrealized PnL</div>
-          <div className={`text-lg font-semibold ${pnlColor(summary.unrealizedPnl ?? 0)}`}>
-            ${(summary.unrealizedPnl ?? 0).toFixed(2)}
+          <div className={`text-lg font-semibold ${pnlColor(liveSummary.unrealizedPnl ?? 0)}`}>
+            ${(liveSummary.unrealizedPnl ?? 0).toFixed(2)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Realized PnL</div>
-          <div className={`text-lg font-semibold ${pnlColor(summary.realizedPnl ?? 0)}`}>
-            ${(summary.realizedPnl ?? 0).toFixed(2)}
+          <div className={`text-lg font-semibold ${pnlColor(liveSummary.realizedPnl ?? 0)}`}>
+            ${(liveSummary.realizedPnl ?? 0).toFixed(2)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Net PnL</div>
-          <div className={`text-lg font-semibold ${pnlColor(summary.netPnl ?? 0)}`}>
-            ${(summary.netPnl ?? 0).toFixed(2)}
+          <div className={`text-lg font-semibold ${pnlColor(liveSummary.netPnl ?? 0)}`}>
+            ${(liveSummary.netPnl ?? 0).toFixed(2)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Total Return</div>
-          <div className={`text-lg font-semibold ${pnlColor(summary.totalReturnPct ?? 0)}`}>
-            {((summary.totalReturnPct ?? 0) * 100).toFixed(2)}%
+          <div className={`text-lg font-semibold ${pnlColor(liveSummary.totalReturnPct ?? 0)}`}>
+            {((liveSummary.totalReturnPct ?? 0) * 100).toFixed(2)}%
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Total Invested</div>
           <div className="text-lg font-semibold text-white">
-            ${(summary.totalInvested ?? 0).toFixed(2)}
+            ${(liveSummary.totalInvested ?? 0).toFixed(2)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Total Sold</div>
           <div className="text-lg font-semibold text-white">
-            ${(summary.totalSold ?? 0).toFixed(2)}
+            ${(liveSummary.totalSold ?? 0).toFixed(2)}
           </div>
         </div>
 

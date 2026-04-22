@@ -4,10 +4,10 @@ import {
   apiMarketQuote
 } from '../api/market.api'
 import {
-  apiAccountMe,
   apiAccountAddFavorite,
   apiAccountRemoveFavorite
 } from '../api/account.api'
+import { loadAccountIntoStore } from '../state/storeLoaders'
 
 export type HistoryPreset = 'day' | 'week' | 'month' | '6m' | 'year'
 
@@ -25,7 +25,6 @@ export function useResearch() {
   const [quote, setQuote] = useState<{ price?: number; ts?: number } | null>(null)
 
   const [favorites, setFavorites] = useState<string[]>([])
-  const [accountCash, setAccountCash] = useState<number>(0)
   const [favLoading, setFavLoading] = useState(false)
 
   const [showPositions, setShowPositions] = useState<boolean>(() => {
@@ -53,9 +52,8 @@ export function useResearch() {
 
   const loadAccount = useCallback(async () => {
     try {
-      const me = await apiAccountMe()
+      const me = await loadAccountIntoStore()
       setFavorites((me?.favorites ?? []).map((s: string) => normalizeSymbol(s)))
-      setAccountCash(Number(me?.cashBalance ?? 0))
     } catch {
       // silent fail
     }
@@ -67,12 +65,11 @@ export function useResearch() {
       try {
         const [symbolData, me] = await Promise.all([
           apiMarketSymbols(),
-          apiAccountMe()
+          loadAccountIntoStore()
         ])
 
         setSymbols(symbolData)
         setFavorites((me?.favorites ?? []).map((s: string) => normalizeSymbol(s)))
-        setAccountCash(Number(me?.cashBalance ?? 0))
       } catch {
         setError('Failed to load data')
       }
@@ -138,7 +135,6 @@ export function useResearch() {
     warning,
     quote,
     favorites,
-    accountCash,
     favLoading,
     showPositions, setShowPositions,
     selectedPositionQty, setSelectedPositionQty,

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { executeTrade } from '../api/trade.api'
-import { getPositions } from '../api/positions.api'
 import type { TradePayload } from '../interfaces/tradePayload.interface'
-import type { Position } from '../interfaces/position.interface'
+import { loadPositionsIntoStore } from '../state/storeLoaders'
+import { usePositionStore } from '../state/usePositionStore'
 
 type Mode = 'QTY' | 'USD'
 
@@ -19,15 +19,17 @@ export function useTradePanel(
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-
-  const [positions, setPositions] = useState<Position[]>([])
+  const [positionsLoaded, setPositionsLoaded] = useState(false)
+  const positions = usePositionStore((state) => state.positions)
 
   async function loadPositions() {
     try {
-      const data = await getPositions()
-      setPositions(data)
+      setPositionsLoaded(false)
+      await loadPositionsIntoStore()
     } catch {
-      setPositions([])
+      usePositionStore.getState().clearPositions()
+    } finally {
+      setPositionsLoaded(true)
     }
   }
 
@@ -40,6 +42,19 @@ export function useTradePanel(
     const timer = setTimeout(() => setError(null), 3000)
     return () => clearTimeout(timer)
   }, [error])
+
+  const pos = positions.find((position) => position.symbol === symbol)
+  const qtyOwned = positionsLoaded
+    ? (pos ? Number(pos.qty) : 0)
+    : (pos ? Number(pos.qty) : Number(positionQty ?? 0))
+
+  useEffect(() => {
+    if (side === 'SELL' && qtyOwned <= 0) {
+      setSide('BUY')
+      setValue('')
+      setError(null)
+    }
+  }, [qtyOwned, side])
 
   async function handleSubmit() {
     if (!symbol) {
@@ -105,8 +120,6 @@ export function useTradePanel(
   let insufficientPosition = false
 
   const cash = Number(availableCash ?? 0)
-  const pos = positions.find(p => p.symbol === symbol)
-  const qtyOwned = pos ? Number(pos.qty) : Number(positionQty ?? 0)
   const numeric = Number(value)
   const noSymbol = !symbol
 

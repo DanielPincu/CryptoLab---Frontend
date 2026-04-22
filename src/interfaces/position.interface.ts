@@ -1,4 +1,4 @@
-export interface Position {
+export interface IPosition {
   _id: string
   symbol: string
   qty: number
@@ -13,3 +13,5 @@ export interface Position {
   createdAt: string
   updatedAt: string
 }
+
+export type Position = IPosition

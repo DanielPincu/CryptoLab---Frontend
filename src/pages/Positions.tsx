@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react'
 import Positions from '../components/Positions'
 import TradePanel from '../components/TradePanel'
 import { useWsPrices } from '../state/useWsPrices'
-import { apiAccountMe } from '../api/account.api'
+import { loadAccountIntoStore } from '../state/storeLoaders'
 
 export default function Portfolio() {
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null)
   const [selectedPositionQty, setSelectedPositionQty] = useState<number | undefined>(undefined)
-  const [accountCash, setAccountCash] = useState<number>(0)
   const [positionsRefreshKey, setPositionsRefreshKey] = useState(0)
   const [positionsCount, setPositionsCount] = useState(0)
 
@@ -18,9 +17,7 @@ export default function Portfolio() {
     : undefined
 
   useEffect(() => {
-    apiAccountMe().then((account) =>
-      setAccountCash(account.cashBalance ?? 0)
-    )
+    void loadAccountIntoStore()
   }, [])
 
   return (
@@ -46,12 +43,9 @@ export default function Portfolio() {
             <TradePanel
               symbol={selectedSymbol ?? undefined}
               currentPrice={selectedPrice}
-              availableCash={accountCash}
               positionQty={selectedPositionQty}
               onSuccess={() => {
-                apiAccountMe().then((account) =>
-                  setAccountCash(account.cashBalance ?? 0)
-                )
+                void loadAccountIntoStore()
                 setPositionsRefreshKey((k) => k + 1)
               }}
             />

@@ -1,34 +1,34 @@
 import { useEffect, useMemo, useState } from 'react'
-import { get } from '../api/http.api'
 import {
-  apiAccountMe,
   apiAccountRemoveFavorite,
   apiAccountResetFavorites
 } from '../api/account.api'
 import { useWsPrices } from '../state/useWsPrices'
-import type { IAccount } from '../interfaces/account.interface'
 import type { IMarketTick } from '../interfaces/marketTick.interface'
+import { loadAccountIntoStore, loadLatestPricesIntoStore } from '../state/storeLoaders'
+import { useAccountStore } from '../state/useAccountStore'
+import { usePriceStore } from '../state/usePriceStore'
 
 export function useLivePrices() {
   const ws = useWsPrices()
 
   const [ticks, setTicks] = useState<IMarketTick[]>([])
-  const [account, setAccount] = useState<IAccount | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [updating, setUpdating] = useState(false)
+  const favorites = useAccountStore((state) => state.account?.favorites ?? [])
+  const updateFavorites = useAccountStore((state) => state.updateFavorites)
+  const livePriceMap = usePriceStore((state) => state.prices)
 
   // initial load
   useEffect(() => {
     async function load() {
       try {
-        const [market, acc] = await Promise.all([
-          get('/market/latest'),
-          apiAccountMe()
+        const [market] = await Promise.all([
+          loadLatestPricesIntoStore(),
+          loadAccountIntoStore()
         ])
-
         setTicks(market)
-        setAccount(acc)
       } catch {
         setError('Failed to load live prices')
       } finally {
@@ -41,12 +41,10 @@ export function useLivePrices() {
 
   // merged + filtered rows
   const rows = useMemo(() => {
-    if (!ws.prices) return ticks
-
     return ticks
-      .filter((t) => !account?.favorites || account.favorites.includes(t.symbol))
+      .filter((t) => favorites.length === 0 || favorites.includes(t.symbol))
       .map((t) => {
-        const live = ws.prices[t.symbol]
+        const live = livePriceMap[t.symbol] ?? ws.prices[t.symbol]
 
         return {
           ...t,
@@ -54,15 +52,13 @@ export function useLivePrices() {
           source: live?.source ?? t.source ?? (live ? 'finnhub' : 'binance')
         }
       })
-  }, [ticks, ws.prices, account])
+  }, [favorites, livePriceMap, ticks, ws.prices])
 
   const removeFavorite = async (symbol: string) => {
     setUpdating(true)
     try {
       const updated = await apiAccountRemoveFavorite(symbol)
-      setAccount((prev) =>
-        prev ? { ...prev, favorites: updated.favorites } : prev
-      )
+      updateFavorites(updated.favorites)
       return null
     } catch (err: unknown) {
       return (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Cannot unsubscribe while position is open'
@@ -75,9 +71,7 @@ export function useLivePrices() {
     setUpdating(true)
     try {
       const updated = await apiAccountResetFavorites()
-      setAccount((prev) =>
-        prev ? { ...prev, favorites: updated.favorites } : prev
-      )
+      updateFavorites(updated.favorites)
     } finally {
       setUpdating(false)
     }

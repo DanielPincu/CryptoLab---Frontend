@@ -100,16 +100,18 @@ export default function LivePrices({ selectedSymbol, onSelect }: Props) {
                 {typeof t.price === 'number' ? t.price.toFixed(4) : 'waiting…'}
               </span>
 
-              <span
-                className={
-                  'text-[10px] w-20 text-center py-0.5 rounded ' +
-                  (t.source === 'binance'
-                    ? 'bg-amber-500/20 text-amber-400'
-                    : 'bg-emerald-500/20 text-emerald-400')
-                }
-              >
-                {t.source === 'binance' ? 'REST API' : 'LIVE'}
-              </span>
+              {typeof t.price === 'number' && (
+                <span
+                  className={
+                    'text-[10px] w-20 text-center py-0.5 rounded ' +
+                    (t.source === 'binance'
+                      ? 'bg-amber-500/20 text-amber-400'
+                      : 'bg-emerald-500/20 text-emerald-400')
+                  }
+                >
+                  {t.source === 'binance' ? 'LIVE' : 'LIVE'}
+                </span>
+              )}
             </div>
           </div>
         ))}

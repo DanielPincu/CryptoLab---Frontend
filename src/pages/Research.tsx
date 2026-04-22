@@ -13,7 +13,6 @@ export default function Research() {
     error,
     warning,
     quote,
-    accountCash,
     favLoading,
     showPositions, setShowPositions,
     selectedPositionQty, setSelectedPositionQty,
@@ -133,7 +132,6 @@ export default function Research() {
           <TradePanel
             symbol={symbol}
             currentPrice={quote?.price}
-            availableCash={accountCash}
             positionQty={selectedPositionQty}
             onSuccess={() => {
               void loadQuote(symbol)

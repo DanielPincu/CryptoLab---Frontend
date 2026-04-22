@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
-import { apiAccountMe } from '../api/account.api'
 import TradePanel from '../components/TradePanel'
 import LivePrices from '../components/LivePrices'
 import Positions from '../components/Positions'
 import PortfolioSummary from '../components/PortfolioSummary'
+import { loadAccountIntoStore } from '../state/storeLoaders'
+import { useAccountStore } from '../state/useAccountStore'
 import { useWsPrices } from '../state/useWsPrices'
 
 
 export default function Dashboard() {
-  const [accountCash, setAccountCash] = useState<number>(0)
-
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null)
@@ -26,6 +25,7 @@ export default function Dashboard() {
   })
 
   const ws = useWsPrices()
+  const accountCash = useAccountStore((state) => state.account?.cashBalance ?? 0)
 
   const selectedPrice = selectedSymbol
     ? ws.prices?.[selectedSymbol]?.price
@@ -33,10 +33,7 @@ export default function Dashboard() {
 
   // Load account
   useEffect(() => {
-    apiAccountMe()
-      .then((account) => {
-        setAccountCash(account.cashBalance ?? 0)
-      })
+    loadAccountIntoStore()
       .catch(() => setError('Failed to load data'))
       .finally(() => setLoading(false))
   }, [])
@@ -105,12 +102,9 @@ export default function Dashboard() {
             <TradePanel
             symbol={selectedSymbol ?? undefined}
             currentPrice={selectedPrice}
-            availableCash={accountCash}
             positionQty={selectedPositionQty}
             onSuccess={() => {
-              apiAccountMe().then((account) =>
-                setAccountCash(account.cashBalance ?? 0)
-              )
+              void loadAccountIntoStore()
               setPositionsRefreshKey((k) => k + 1)
             }}
           />

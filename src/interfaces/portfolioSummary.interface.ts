@@ -1,4 +1,4 @@
-export interface PortfolioSummary {
+export interface IPortfolioSummary {
   cashBalance: number
   positionsValue: number
   totalValue: number
@@ -18,3 +18,5 @@ export interface PortfolioSummary {
     startEquity: number
   }
 }
+
+export type PortfolioSummary = IPortfolioSummary

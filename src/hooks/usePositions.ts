@@ -1,34 +1,35 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useWsPrices } from '../state/useWsPrices'
+import { useEffect, useMemo } from 'react'
 import { getPositions } from '../api/positions.api'
-import type { Position } from '../interfaces/position.interface'
+import { usePositionStore } from '../state/usePositionStore'
+import { usePriceStore } from '../state/usePriceStore'
+import type { IPosition } from '../interfaces/position.interface'
 
 interface UsePositionsParams {
-  positions?: Position[]
+  positions?: IPosition[]
   refreshKey?: number
 }
 
 export function usePositions({ positions, refreshKey }: UsePositionsParams) {
-  const ws = useWsPrices()
-
-  const [internalPositions, setInternalPositions] = useState<Position[]>([])
+  const storedPositions = usePositionStore((state) => state.positions)
+  const setPositions = usePositionStore((state) => state.setPositions)
+  const prices = usePriceStore((state) => state.prices)
   const isControlled = positions !== undefined
 
   useEffect(() => {
     if (!isControlled) {
       getPositions()
-        .then((data) => setInternalPositions(data ?? []))
-        .catch(() => setInternalPositions([]))
+        .then((data) => setPositions(data ?? []))
+        .catch(() => setPositions([]))
     }
-  }, [isControlled, refreshKey])
+  }, [isControlled, refreshKey, setPositions])
 
   const sourcePositions = useMemo(() => {
-    return isControlled ? positions ?? [] : internalPositions
-  }, [isControlled, positions, internalPositions])
+    return isControlled ? positions ?? [] : storedPositions
+  }, [isControlled, positions, storedPositions])
 
   const livePositions = useMemo(() => {
     return sourcePositions.map((p) => {
-      const livePrice = ws.prices?.[p.symbol]?.price ?? p.currentPrice ?? null
+      const livePrice = prices[p.symbol]?.price ?? p.currentPrice ?? null
 
       if (livePrice == null) {
         return { ...p, currentPrice: null }
@@ -48,7 +49,7 @@ export function usePositions({ positions, refreshKey }: UsePositionsParams) {
         unrealizedPnlPercent
       }
     })
-  }, [sourcePositions, ws.prices])
+  }, [prices, sourcePositions])
 
   return {
     positions: livePositions

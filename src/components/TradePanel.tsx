@@ -1,13 +1,15 @@
 import { useTradePanel } from '../hooks/useTradePanel'
 import type { TradePanelProps } from '../interfaces/tradePanelProps.interface'
+import { useAccountStore } from '../state/useAccountStore'
 
 export default function TradePanel({
   symbol,
   currentPrice,
-  availableCash,
   positionQty,
   onSuccess
 }: TradePanelProps) {
+  const availableCash = useAccountStore((state) => state.account?.cashBalance ?? 0)
+
   const {
     side, setSide,
     mode, setMode,

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { get } from '../api/http.api'
+import { usePriceStore } from './usePriceStore'
 
 export type WsPrice = { symbol: string; price: number; time: number; source?: 'finnhub' | 'binance' | 'backup' }
 
@@ -9,16 +10,17 @@ function normalizeSymbol(s: string) {
 
 export function useWsPrices() {
   const [status, setStatus] = useState<'connecting' | 'open' | 'closed' | 'error'>('connecting')
-  const [prices, setPrices] = useState<Record<string, WsPrice>>({})
   const wsRef = useRef<WebSocket | null>(null)
+  const prices = usePriceStore((state) => state.prices)
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
     let cancelled = false
+    const { setBulkPrices, setPrice } = usePriceStore.getState()
 
     async function connect() {
       setStatus('connecting')
-      setPrices({})
+      setBulkPrices({})
 
       // close previous socket if any
       if (wsRef.current) {
@@ -61,15 +63,14 @@ export function useWsPrices() {
 
         const symbol = normalizeSymbol(data?.symbol || data?.s)
         const price = Number(data?.price ?? data?.p)
-        const time = Number(data?.time ?? data?.t ?? Date.now())
-        const source = data?.source as 'finnhub' | 'binance' | 'backup' | undefined
+        const source =
+          data?.source === 'finnhub' || data?.source === 'binance'
+            ? data.source
+            : undefined
 
         if (!symbol || !Number.isFinite(price)) return
 
-        setPrices((prev) => ({
-          ...prev,
-          [symbol]: { symbol, price, time, source }
-        }))
+        setPrice(symbol, { symbol, price, source })
       }
 
       ws.onerror = () => {
@@ -93,5 +94,5 @@ export function useWsPrices() {
     }
   }, [])
 
-  return { status, prices }
+  return { status, prices: prices as Record<string, WsPrice> }
 }
