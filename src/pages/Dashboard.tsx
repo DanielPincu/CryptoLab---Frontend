@@ -12,7 +12,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null)
-  const [selectedPositionQty, setSelectedPositionQty] = useState<number | undefined>(undefined)
   const [positionsRefreshKey, setPositionsRefreshKey] = useState(0)
   const [showSummary, setShowSummary] = useState<boolean>(() => {
     const saved = localStorage.getItem('dashboard.showSummary')
@@ -84,7 +83,6 @@ export default function Dashboard() {
           selectedSymbol={selectedSymbol}
           onSelect={(symbol) => {
             setSelectedSymbol(symbol)
-            setSelectedPositionQty(undefined)
           }}
         />
         </div>
@@ -102,7 +100,6 @@ export default function Dashboard() {
             <TradePanel
             symbol={selectedSymbol ?? undefined}
             currentPrice={selectedPrice}
-            positionQty={selectedPositionQty}
             onSuccess={() => {
               void loadAccountIntoStore()
               setPositionsRefreshKey((k) => k + 1)
@@ -129,9 +126,8 @@ export default function Dashboard() {
             <div className="max-h-[70vh] overflow-y-auto pr-2">
               <Positions
                 selectedSymbol={selectedSymbol}
-                onSelect={(symbol, qty) => {
+                onSelect={(symbol) => {
                   setSelectedSymbol(symbol)
-                  setSelectedPositionQty(qty)
                 }}
                 refreshKey={positionsRefreshKey}
               />

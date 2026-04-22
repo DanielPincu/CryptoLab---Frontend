@@ -10,7 +10,6 @@ export function useTradePanel(
   symbol: string | undefined,
   currentPrice: number | undefined,
   availableCash: number | undefined,
-  positionQty: number | undefined,
   onSuccess?: () => void
 ) {
   const [side, setSide] = useState<'BUY' | 'SELL'>('BUY')
@@ -46,7 +45,7 @@ export function useTradePanel(
   const pos = positions.find((position) => position.symbol === symbol)
   const qtyOwned = positionsLoaded
     ? (pos ? Number(pos.qty) : 0)
-    : (pos ? Number(pos.qty) : Number(positionQty ?? 0))
+    : (pos ? Number(pos.qty) : 0)
 
   useEffect(() => {
     if (side === 'SELL' && qtyOwned <= 0) {

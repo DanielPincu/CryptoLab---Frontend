@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { get } from '../api/http.api'
+import { apiAccountMe } from '../api/account.api'
+import { apiUserMe } from '../api/user.api'
+import { useAccountStore } from './useAccountStore'
 import { usePriceStore } from './usePriceStore'
 
 export type WsPrice = { symbol: string; price: number; time: number; source?: 'finnhub' | 'binance' | 'backup' }
@@ -27,17 +29,20 @@ export function useWsPrices() {
         wsRef.current.close()
       }
 
+      const storedFavorites = useAccountStore.getState().account?.favorites ?? []
+
       const [meRes, accRes] = await Promise.all([
-        get('/user/me'),
-        get('/account/me')
+        apiUserMe(),
+        storedFavorites.length > 0 ? Promise.resolve(null) : apiAccountMe()
       ])
 
-      const userId: string | undefined =
-        meRes?.user?.id || meRes?._id || meRes?.id
+      const userId: string | undefined = meRes?.id
 
-      const favorites: string[] = Array.isArray(accRes?.favorites)
-        ? accRes.favorites.map(normalizeSymbol)
-        : []
+      const favorites: string[] = storedFavorites.length > 0
+        ? storedFavorites.map(normalizeSymbol)
+        : Array.isArray(accRes?.favorites)
+          ? accRes.favorites.map(normalizeSymbol)
+          : []
 
       // Ensure WebSocket protocol (ws / wss) instead of http / https
       const httpBase = `${import.meta.env.VITE_API_URL}/market/latest`

@@ -8,6 +8,7 @@ import {
   apiAccountRemoveFavorite
 } from '../api/account.api'
 import { loadAccountIntoStore } from '../state/storeLoaders'
+import { useAccountStore } from '../state/useAccountStore'
 
 export type HistoryPreset = 'day' | 'week' | 'month' | '6m' | 'year'
 
@@ -23,9 +24,9 @@ export function useResearch() {
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
   const [quote, setQuote] = useState<{ price?: number; ts?: number } | null>(null)
-
-  const [favorites, setFavorites] = useState<string[]>([])
   const [favLoading, setFavLoading] = useState(false)
+  const favorites = useAccountStore((state) => state.account?.favorites ?? [])
+  const updateFavorites = useAccountStore((state) => state.updateFavorites)
 
   const [showPositions, setShowPositions] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
@@ -33,8 +34,6 @@ export function useResearch() {
     if (!saved) return false
     return saved === 'open'
   })
-
-  const [selectedPositionQty, setSelectedPositionQty] = useState<number>(0)
   const [positionsRefreshKey, setPositionsRefreshKey] = useState(0)
 
   // --- quote ---
@@ -52,8 +51,7 @@ export function useResearch() {
 
   const loadAccount = useCallback(async () => {
     try {
-      const me = await loadAccountIntoStore()
-      setFavorites((me?.favorites ?? []).map((s: string) => normalizeSymbol(s)))
+      await loadAccountIntoStore()
     } catch {
       // silent fail
     }
@@ -69,14 +67,14 @@ export function useResearch() {
         ])
 
         setSymbols(symbolData)
-        setFavorites((me?.favorites ?? []).map((s: string) => normalizeSymbol(s)))
+        updateFavorites((me?.favorites ?? []).map((s: string) => normalizeSymbol(s)))
       } catch {
         setError('Failed to load data')
       }
     }
 
     void init()
-  }, [])
+  }, [updateFavorites])
 
   // --- favorite state ---
   const isFavorite = favorites.includes(symbol)
@@ -85,7 +83,7 @@ export function useResearch() {
     try {
       setFavLoading(true)
       const res = await apiAccountAddFavorite(symbol)
-      setFavorites(res.favorites.map((s: string) => normalizeSymbol(s)))
+      updateFavorites(res.favorites.map((s: string) => normalizeSymbol(s)))
     } finally {
       setFavLoading(false)
     }
@@ -95,7 +93,7 @@ export function useResearch() {
     try {
       setFavLoading(true)
       const res = await apiAccountRemoveFavorite(symbol)
-      setFavorites(res.favorites.map((s: string) => normalizeSymbol(s)))
+      updateFavorites(res.favorites.map((s: string) => normalizeSymbol(s)))
     } catch (err: unknown) {
       let message = 'Cannot unsubscribe while position is open'
 
@@ -137,7 +135,6 @@ export function useResearch() {
     favorites,
     favLoading,
     showPositions, setShowPositions,
-    selectedPositionQty, setSelectedPositionQty,
     positionsRefreshKey, setPositionsRefreshKey,
     isFavorite,
     handleAddFavorite,

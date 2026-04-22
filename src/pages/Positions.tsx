@@ -6,7 +6,6 @@ import { loadAccountIntoStore } from '../state/storeLoaders'
 
 export default function Portfolio() {
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null)
-  const [selectedPositionQty, setSelectedPositionQty] = useState<number | undefined>(undefined)
   const [positionsRefreshKey, setPositionsRefreshKey] = useState(0)
   const [positionsCount, setPositionsCount] = useState(0)
 
@@ -28,9 +27,8 @@ export default function Portfolio() {
         <div className="h-full overflow-y-auto pr-2">
           <Positions
             selectedSymbol={selectedSymbol}
-            onSelect={(symbol, qty) => {
+            onSelect={(symbol) => {
               setSelectedSymbol(symbol)
-              setSelectedPositionQty(qty)
             }}
             refreshKey={positionsRefreshKey}
             onCountChange={setPositionsCount}
@@ -43,7 +41,6 @@ export default function Portfolio() {
             <TradePanel
               symbol={selectedSymbol ?? undefined}
               currentPrice={selectedPrice}
-              positionQty={selectedPositionQty}
               onSuccess={() => {
                 void loadAccountIntoStore()
                 setPositionsRefreshKey((k) => k + 1)

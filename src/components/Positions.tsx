@@ -28,7 +28,7 @@ export default function Positions({
         livePositions.map((p) => (
           <div
             key={p._id}
-            onClick={() => onSelect?.(p.symbol, p.qty)}
+            onClick={() => onSelect?.(p.symbol)}
             className={
               "cursor-pointer text-sm py-3 my-3 border-b border-slate-800 last:border-b-0 space-y-1 rounded transition " +
               (selectedSymbol === p.symbol

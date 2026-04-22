@@ -15,7 +15,6 @@ export default function Research() {
     quote,
     favLoading,
     showPositions, setShowPositions,
-    selectedPositionQty, setSelectedPositionQty,
     positionsRefreshKey, setPositionsRefreshKey,
     isFavorite,
     handleAddFavorite,
@@ -132,7 +131,6 @@ export default function Research() {
           <TradePanel
             symbol={symbol}
             currentPrice={quote?.price}
-            positionQty={selectedPositionQty}
             onSuccess={() => {
               void loadQuote(symbol)
               void loadAccount()
@@ -162,9 +160,8 @@ export default function Research() {
               <Positions
                 selectedSymbol={symbol}
                 refreshKey={positionsRefreshKey}
-                onSelect={(sym, qty) => {
+                onSelect={(sym) => {
                   setSymbol(sym)
-                  setSelectedPositionQty(qty)
                 }}
               />
             </div>

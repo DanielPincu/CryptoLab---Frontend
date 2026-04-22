@@ -5,7 +5,6 @@ import { useAccountStore } from '../state/useAccountStore'
 export default function TradePanel({
   symbol,
   currentPrice,
-  positionQty,
   onSuccess
 }: TradePanelProps) {
   const availableCash = useAccountStore((state) => state.account?.cashBalance ?? 0)
@@ -23,7 +22,7 @@ export default function TradePanel({
     insufficientPosition,
     qtyOwned,
     noSymbol
-  } = useTradePanel(symbol, currentPrice, availableCash, positionQty, onSuccess)
+  } = useTradePanel(symbol, currentPrice, availableCash, onSuccess)
 
   return (
     <div className="p-4 bg-gray-900 rounded-lg text-white">

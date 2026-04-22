@@ -3,15 +3,12 @@ import {
   apiAccountRemoveFavorite,
   apiAccountResetFavorites
 } from '../api/account.api'
-import { useWsPrices } from '../state/useWsPrices'
 import type { IMarketTick } from '../interfaces/marketTick.interface'
 import { loadAccountIntoStore, loadLatestPricesIntoStore } from '../state/storeLoaders'
 import { useAccountStore } from '../state/useAccountStore'
 import { usePriceStore } from '../state/usePriceStore'
 
 export function useLivePrices() {
-  const ws = useWsPrices()
-
   const [ticks, setTicks] = useState<IMarketTick[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -44,7 +41,7 @@ export function useLivePrices() {
     return ticks
       .filter((t) => favorites.length === 0 || favorites.includes(t.symbol))
       .map((t) => {
-        const live = livePriceMap[t.symbol] ?? ws.prices[t.symbol]
+        const live = livePriceMap[t.symbol]
 
         return {
           ...t,
@@ -52,7 +49,7 @@ export function useLivePrices() {
           source: live?.source ?? t.source ?? (live ? 'finnhub' : 'binance')
         }
       })
-  }, [favorites, livePriceMap, ticks, ws.prices])
+  }, [favorites, livePriceMap, ticks])
 
   const removeFavorite = async (symbol: string) => {
     setUpdating(true)
