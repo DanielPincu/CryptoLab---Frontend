@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { apiLogin, apiRegister, apiLogout, apiMe } from '../api/auth.api'
-import { clearAuthToken, setAuthToken } from '../api/http.api'
 import type { IAuthContext } from '../interfaces/auth.interface'
 import type { IUser } from '../interfaces/user.interface'
 
@@ -13,30 +12,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     apiMe()
       .then((res) => setUser(res.user))
-      .catch(() => {
-        clearAuthToken()
-        setUser(null)
-      })
+      .catch(() => setUser(null))
       .finally(() => setIsLoading(false))
   }, [])
 
   async function login(email: string, password: string) {
-    const res = await apiLogin({ email, password })
-    if (res.token) setAuthToken(res.token)
+    await apiLogin({ email, password })
     const me = await apiMe()
     setUser(me.user)
   }
 
   async function register(username: string, email: string, password: string) {
-    const res = await apiRegister({ username, email, password })
-    if (res.token) setAuthToken(res.token)
+    await apiRegister({ username, email, password })
     const me = await apiMe()
     setUser(me.user)
   }
 
   async function logout() {
-    await apiLogout().catch(() => null)
-    clearAuthToken()
+    await apiLogout()
     setUser(null)
   }
 
