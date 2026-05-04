@@ -114,15 +114,15 @@ export default function TransactionsTable() {
             return (
             <div
               key={t._id}
-              className={`grid md:grid-cols-6 grid-cols-1 items-center bg-black rounded-lg border px-3 py-2 text-sm hover:bg-gray-800
+              className={`grid md:grid-cols-6 grid-cols-1 items-center rounded-lg border px-3 py-2 text-sm hover:bg-gray-800
 ${
   t.side === 'REWARD'
-    ? 'border-green-800 bg-gray-900'
+    ? 'border-green-800 bg-black'
     : typeof pnl === 'number'
     ? pnl >= 0
-      ? 'border-green-800 bg-gray-900'
-      : 'border-red-800 bg-gray-900'
-    : 'border-gray-800 bg-gray-900'
+      ? 'border-green-800 bg-black'
+      : 'border-red-800 bg-black'
+    : 'border-gray-800 bg-black'
 }`}
             >
               <div className="font-semibold">{t.symbol}</div>
