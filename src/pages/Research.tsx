@@ -144,7 +144,7 @@ export default function Research() {
         </div>
 
         {/* Positions Drawer */}
-        <div className="hidden relative md:flex items-start md:h-full">
+        <div className="hidden relative md:flex items-start md:h-full ">
           <div
             className={`overflow-hidden transform transition-transform duration-500 ease-in-out ${
               showPositions
@@ -160,7 +160,7 @@ export default function Research() {
               <span className="text-slate-400">→</span>
             </button>
 
-          <div className="w-96 md:h-full max-h-[70vh] overflow-y-auto">
+          <div className="w-96 md:h-full max-h-[70vh] overflow-y-auto rounded-lg border border-slate-800 bg-slate-950 p-3">
               <Positions
                 selectedSymbol={symbol}
                 refreshKey={positionsRefreshKey}

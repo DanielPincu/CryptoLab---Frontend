@@ -89,7 +89,7 @@ export default function Dashboard() {
 
         {/* Column 2: Trade Panel */}
         <div className="w-full relative">
-          <div className="mb-4 p-3 rounded-lg bg-slate-900 border border-slate-800">
+          <div className="mb-1 p-3 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between">
             <div className="text-xs text-slate-400">Buying Power</div>
             <div className="text-lg font-semibold text-emerald-400">
               ${accountCash.toFixed(2)}
@@ -117,13 +117,13 @@ export default function Dashboard() {
           >
             <button
               onClick={() => setShowPositions(false)}
-              className="mb-2 flex items-center justify-between px-4 py-2 rounded-lg border border-slate-800 bg-slate-700 hover:bg-slate-800 transition"
+              className="mb-4 flex items-center justify-between px-4 py-2 rounded-lg border border-slate-800 bg-slate-700 hover:bg-slate-800 transition"
             >
               <span className="text-sm font-semibold text-slate-300 uppercase">Positions </span>
               <span className="text-slate-400">→</span>
             </button>
 
-            <div className="max-h-[70vh] overflow-y-auto pr-2">
+            <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-slate-800 bg-slate-950 p-3">
               <Positions
                 selectedSymbol={selectedSymbol}
                 onSelect={(symbol) => {

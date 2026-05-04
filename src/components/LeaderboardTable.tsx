@@ -183,8 +183,8 @@ function LeaderboardSection({
   const medals = ['🥇', '🥈', '🥉']
 
   return (
-    <section className="rounded-xl border border-gray-800 bg-gray-900 p-4">
-      <h2 className={`mb-4 text-lg font-semibold ${titleClassName}`}>
+    <section className="rounded-lg border border-gray-800 bg-black p-4">
+      <h2 className={`mb-4 text-center text-lg font-semibold ${titleClassName}`}>
         {title}
       </h2>
 
@@ -227,14 +227,14 @@ export default function Leaderboard() {
       <LeaderboardSection
         title="🏆 Hall of Fame"
         entries={data.hallOfFame}
-        titleClassName="text-green-400"
+        titleClassName="text-green-400 text-4xl"
         totalClassName="text-green-400"
       />
 
       <LeaderboardSection
         title="💀 Wall of Shame"
         entries={data.wallOfShame}
-        titleClassName="text-red-400"
+        titleClassName="text-red-400 text-4xl"
         totalClassName="text-red-400"
       />
     </div>

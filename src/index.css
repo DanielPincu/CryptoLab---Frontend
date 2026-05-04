@@ -5,3 +5,27 @@
 body {
   @apply bg-slate-900 text-gray-100;
 }
+
+* {
+  scrollbar-color: #4b5563 #111827;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #111827;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border: 2px solid #111827;
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
