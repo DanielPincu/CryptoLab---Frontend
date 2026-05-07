@@ -103,9 +103,20 @@ export default function Navbar() {
         <nav className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950">
           <Link
             to="/"
-            className="font-bold text-xl tracking-wider text-emerald-400 hover:text-emerald-300 transition"
+            aria-label="Go to CryptoLab home"
+            className="group flex items-center gap-3 rounded-lg px-2 py-1.5 transition hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
           >
-            CryptoLab
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-500/40 bg-emerald-500/10 shadow-sm shadow-emerald-950/40 transition group-hover:border-emerald-400/70 group-hover:bg-emerald-400/15">
+              <span className="font-mono text-sm font-black text-emerald-300">CL</span>
+            </span>
+            <span className="flex flex-col leading-none">
+              <span className="text-lg font-bold tracking-normal text-slate-50 transition group-hover:text-emerald-300">
+                CryptoLab
+              </span>
+              <span className="hidden text-[10px] font-semibold uppercase tracking-wide text-slate-500 transition group-hover:text-slate-400 sm:block">
+                Trading Workspace
+              </span>
+            </span>
           </Link>
 
           {isAuthenticated && (
