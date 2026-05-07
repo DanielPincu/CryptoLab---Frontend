@@ -1,9 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useResearch } from '../hooks/useResearch'
 import TradePanel from '../components/TradePanel'
 import Positions from '../components/Positions'
 import ResearchGraph from '../components/ResearchGraph'
 import { useWsPrices } from '../state/useWsPrices'
+
+function cleanSymbol(value: string) {
+  return value.replace(/^BINANCE:/i, '').toUpperCase().trim()
+}
 
 export default function Research() {
   const {
@@ -24,9 +28,27 @@ export default function Research() {
     loadQuote,
     loadAccount
   } = useResearch()
+  const [symbolSearch, setSymbolSearch] = useState('')
   const ws = useWsPrices(symbol ? [symbol] : [])
   const livePrice = symbol ? ws.prices?.[symbol]?.price : undefined
   const currentPrice = livePrice ?? quote?.price
+  const filteredSymbols = useMemo(() => {
+    const query = cleanSymbol(symbolSearch)
+
+    if (!query) return symbols
+
+    return symbols.filter((s) => cleanSymbol(s.symbol).includes(query))
+  }, [symbolSearch, symbols])
+
+  function selectResearchSymbol(nextSymbol: string) {
+    const normalized = cleanSymbol(nextSymbol)
+
+    if (!normalized) return
+
+    setSymbol(normalized)
+    setSymbolSearch('')
+    setPreset('year')
+  }
 
   useEffect(() => {
     if (symbol) {
@@ -56,18 +78,52 @@ export default function Research() {
       )}
 
       <div className="flex flex-wrap items-center gap-4 mb-4">
+        <div className="relative w-full sm:w-72">
+          <input
+            value={symbolSearch}
+            onChange={(e) => setSymbolSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && filteredSymbols[0]) {
+                selectResearchSymbol(filteredSymbols[0].symbol)
+              }
+            }}
+            placeholder="Search symbol..."
+            className="w-full rounded border border-slate-700 bg-slate-800 px-3 py-2 font-mono text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/10"
+          />
+
+          {symbolSearch && filteredSymbols.length > 0 && (
+            <div className="absolute left-0 right-0 top-[calc(100%+0.25rem)] z-30 max-h-64 overflow-y-auto rounded border border-slate-700 bg-slate-950 shadow-xl">
+              {filteredSymbols.slice(0, 8).map((s) => {
+                const optionSymbol = cleanSymbol(s.symbol)
+
+                return (
+                  <button
+                    key={s.symbol}
+                    type="button"
+                    onClick={() => selectResearchSymbol(optionSymbol)}
+                    className="flex w-full items-center justify-between px-3 py-2 text-left font-mono text-sm text-slate-200 transition hover:bg-slate-800 hover:text-emerald-300"
+                  >
+                    <span>{optionSymbol}</span>
+                    {optionSymbol === symbol && (
+                      <span className="text-[10px] uppercase tracking-wide text-emerald-400">Selected</span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
         <select
           value={symbol}
           onChange={(e) => {
-            const v = e.target.value.toUpperCase().trim()
-            setSymbol(v)
-            setPreset('year')
+            selectResearchSymbol(e.target.value)
           }}
-          className="w-96 px-3 py-2 rounded bg-slate-800 border border-slate-700"
+          className="w-full rounded border border-slate-700 bg-slate-800 px-3 py-2 sm:w-80"
         >
-          {symbols.map((s) => (
-            <option key={s.symbol} value={s.symbol.replace(/^BINANCE:/, '')}>
-              {s.symbol.replace(/^BINANCE:/, '')}
+          {filteredSymbols.map((s) => (
+            <option key={s.symbol} value={cleanSymbol(s.symbol)}>
+              {cleanSymbol(s.symbol)}
             </option>
           ))}
         </select>

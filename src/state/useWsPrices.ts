@@ -6,13 +6,158 @@ import { usePriceStore } from './usePriceStore'
 
 export type WsPrice = { symbol: string; price: number; time: number; source?: 'finnhub' | 'binance' | 'backup' }
 
+type WsStatus = 'connecting' | 'open' | 'closed' | 'error'
+
 function normalizeSymbol(s: string) {
   return String(s || '').replace(/^BINANCE:/i, '').toUpperCase().trim()
 }
 
+let wsRef: WebSocket | null = null
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+let connectionVersion = 0
+let activeSymbolsKey = ''
+let activeStatus: WsStatus = 'closed'
+let consumerId = 0
+
+const consumers = new Map<number, string[]>()
+const statusListeners = new Set<(status: WsStatus) => void>()
+
+function setSharedStatus(status: WsStatus) {
+  activeStatus = status
+  statusListeners.forEach((listener) => listener(status))
+}
+
+function getRequestedSymbols() {
+  const storedFavorites = useAccountStore.getState().account?.favorites ?? []
+  const symbols = [
+    ...storedFavorites.map(normalizeSymbol),
+    ...Array.from(consumers.values()).flat()
+  ]
+
+  return [...new Set(symbols.filter(Boolean))].sort()
+}
+
+function clearReconnectTimer() {
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer)
+    reconnectTimer = null
+  }
+}
+
+function closeSharedSocket() {
+  clearReconnectTimer()
+  connectionVersion += 1
+  activeSymbolsKey = ''
+
+  if (wsRef) {
+    wsRef.onclose = null
+    wsRef.close()
+    wsRef = null
+  }
+
+  setSharedStatus('closed')
+}
+
+async function connectSharedSocket() {
+  clearReconnectTimer()
+
+  if (consumers.size === 0) {
+    closeSharedSocket()
+    return
+  }
+
+  const requestedSymbols = getRequestedSymbols()
+  const requestedSymbolsKey = requestedSymbols.join(',')
+
+  if (wsRef && activeSymbolsKey === requestedSymbolsKey) {
+    return
+  }
+
+  const currentVersion = connectionVersion + 1
+  connectionVersion = currentVersion
+  activeSymbolsKey = requestedSymbolsKey
+  setSharedStatus('connecting')
+
+  if (wsRef) {
+    wsRef.onclose = null
+    wsRef.close()
+    wsRef = null
+  }
+
+  const storedFavorites = useAccountStore.getState().account?.favorites ?? []
+
+  try {
+    const [meRes, accRes] = await Promise.all([
+      apiUserMe(),
+      storedFavorites.length > 0 ? Promise.resolve(null) : apiAccountMe()
+    ])
+
+    if (currentVersion !== connectionVersion || consumers.size === 0) return
+
+    const accountFavorites: string[] = storedFavorites.length > 0
+      ? storedFavorites.map(normalizeSymbol)
+      : Array.isArray(accRes?.favorites)
+        ? accRes.favorites.map(normalizeSymbol)
+        : []
+
+    const symbols = [...new Set([...accountFavorites, ...requestedSymbols])].filter(Boolean).sort()
+    activeSymbolsKey = symbols.join(',')
+
+    // Ensure WebSocket protocol (ws / wss) instead of http / https
+    const httpBase = `${import.meta.env.VITE_API_URL}/market/latest`
+    const base = httpBase
+      .replace(/^http:/i, 'ws:')
+      .replace(/^https:/i, 'wss:')
+
+    const params = new URLSearchParams()
+    if (meRes?.id) params.set('userId', meRes.id)
+    if (symbols.length) params.set('favorites', symbols.join(','))
+
+    const url = params.toString() ? `${base}?${params.toString()}` : base
+    const ws = new WebSocket(url)
+    wsRef = ws
+
+    const { setPrice } = usePriceStore.getState()
+
+    ws.onopen = () => {
+      if (currentVersion === connectionVersion) setSharedStatus('open')
+    }
+
+    ws.onmessage = (ev) => {
+      const data = JSON.parse(String(ev.data))
+      const symbol = normalizeSymbol(data?.symbol || data?.s)
+      const price = Number(data?.price ?? data?.p)
+      const source =
+        data?.source === 'finnhub' || data?.source === 'binance'
+          ? data.source
+          : undefined
+
+      if (!symbol || !Number.isFinite(price)) return
+
+      setPrice(symbol, { symbol, price, source })
+    }
+
+    ws.onerror = () => {
+      if (currentVersion === connectionVersion) setSharedStatus('error')
+    }
+
+    ws.onclose = () => {
+      if (currentVersion !== connectionVersion || consumers.size === 0) return
+
+      setSharedStatus('closed')
+      reconnectTimer = setTimeout(connectSharedSocket, 2000)
+    }
+  } catch {
+    if (currentVersion !== connectionVersion || consumers.size === 0) return
+
+    setSharedStatus('error')
+    reconnectTimer = setTimeout(connectSharedSocket, 2000)
+  }
+}
+
 export function useWsPrices(extraSymbols: string[] = []) {
-  const [status, setStatus] = useState<'connecting' | 'open' | 'closed' | 'error'>('connecting')
-  const wsRef = useRef<WebSocket | null>(null)
+  const [status, setStatus] = useState<WsStatus>(activeStatus)
+  const idRef = useRef<number | null>(null)
   const prices = usePriceStore((state) => state.prices)
   const extraSymbolsKey = extraSymbols
     .map(normalizeSymbol)
@@ -21,87 +166,23 @@ export function useWsPrices(extraSymbols: string[] = []) {
     .join(',')
 
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null
-    let cancelled = false
-    const { setBulkPrices, setPrice } = usePriceStore.getState()
+    const id = idRef.current ?? consumerId + 1
+    consumerId = Math.max(consumerId, id)
+    idRef.current = id
 
-    async function connect() {
-      setStatus('connecting')
-      setBulkPrices({})
-
-      // close previous socket if any
-      if (wsRef.current) {
-        wsRef.current.close()
-      }
-
-      const storedFavorites = useAccountStore.getState().account?.favorites ?? []
-
-      const [meRes, accRes] = await Promise.all([
-        apiUserMe(),
-        storedFavorites.length > 0 ? Promise.resolve(null) : apiAccountMe()
-      ])
-
-      const userId: string | undefined = meRes?.id
-
-      const favorites: string[] = storedFavorites.length > 0
-        ? storedFavorites.map(normalizeSymbol)
-        : Array.isArray(accRes?.favorites)
-          ? accRes.favorites.map(normalizeSymbol)
-          : []
-      const requestedSymbols = [...new Set([...favorites, ...extraSymbolsKey.split(',').filter(Boolean)])]
-
-      // Ensure WebSocket protocol (ws / wss) instead of http / https
-      const httpBase = `${import.meta.env.VITE_API_URL}/market/latest`
-      const base = httpBase
-        .replace(/^http:/i, 'ws:')
-        .replace(/^https:/i, 'wss:')
-
-      const params = new URLSearchParams()
-      if (userId) params.set('userId', userId)
-      if (requestedSymbols.length) params.set('favorites', requestedSymbols.join(','))
-
-      const url = params.toString() ? `${base}?${params.toString()}` : base
-
-      const ws = new WebSocket(url)
-      wsRef.current = ws
-
-      ws.onopen = () => {
-        if (!cancelled) setStatus('open')
-      }
-
-      ws.onmessage = (ev) => {
-        const data = JSON.parse(String(ev.data))
-
-        const symbol = normalizeSymbol(data?.symbol || data?.s)
-        const price = Number(data?.price ?? data?.p)
-        const source =
-          data?.source === 'finnhub' || data?.source === 'binance'
-            ? data.source
-            : undefined
-
-        if (!symbol || !Number.isFinite(price)) return
-
-        setPrice(symbol, { symbol, price, source })
-      }
-
-      ws.onerror = () => {
-        if (!cancelled) setStatus('error')
-      }
-
-      ws.onclose = () => {
-        if (cancelled) return
-        setStatus('closed')
-        timer = setTimeout(connect, 2000)
-      }
-      
-    }
-
-    connect()
+    consumers.set(id, extraSymbolsKey.split(',').filter(Boolean))
+    statusListeners.add(setStatus)
+    void connectSharedSocket()
 
     return () => {
-      cancelled = true
-      if (timer) clearTimeout(timer)
-      wsRef.current?.close()
+      consumers.delete(id)
+      statusListeners.delete(setStatus)
+
+      if (consumers.size === 0) {
+        closeSharedSocket()
+      } else {
+        void connectSharedSocket()
+      }
     }
   }, [extraSymbolsKey])
 
