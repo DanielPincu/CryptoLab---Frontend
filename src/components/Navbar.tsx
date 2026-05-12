@@ -10,6 +10,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false)
   const precision = usePrecisionStore((state) => state.precision)
   const togglePrecision = usePrecisionStore((state) => state.togglePrecision)
+  const nextPrecision = precision === 2 ? 4 : precision === 4 ? 8 : 2
 
   useEffect(() => {
     // Reserve scrollbar space globally to avoid layout shift between pages
@@ -135,7 +136,7 @@ export default function Navbar() {
                   type="button"
                   onClick={togglePrecision}
                   className="flex items-center gap-1 rounded border border-slate-700 px-2 py-1 text-xs font-semibold text-slate-300 transition hover:border-emerald-500/50 hover:bg-slate-800 hover:text-emerald-300"
-                  aria-label={`Switch to ${precision === 8 ? 4 : 8} decimal precision`}
+                  aria-label={`Switch to ${nextPrecision} decimal precision`}
                   title={`Showing ${precision} decimals`}
                 >
                   <span>Precision</span>
@@ -204,7 +205,7 @@ export default function Navbar() {
                 type="button"
                 onClick={togglePrecision}
                 className="w-fit rounded border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-emerald-500/50 hover:bg-slate-800 hover:text-emerald-300"
-                aria-label={`Switch to ${precision === 8 ? 4 : 8} decimal precision`}
+                aria-label={`Switch to ${nextPrecision} decimal precision`}
               >
                 Precision <span className="font-mono">.{precision}</span>
               </button>

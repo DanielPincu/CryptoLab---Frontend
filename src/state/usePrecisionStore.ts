@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 
-export type DisplayPrecision = 4 | 8
+export type DisplayPrecision = 2 | 4 | 8
+
+const PRECISION_STEPS: DisplayPrecision[] = [2, 4, 8]
 
 interface PrecisionState {
   precision: DisplayPrecision
@@ -10,7 +12,11 @@ interface PrecisionState {
 
 function readInitialPrecision(): DisplayPrecision {
   try {
-    return localStorage.getItem('displayPrecision') === '4' ? 4 : 8
+    const stored = Number(localStorage.getItem('displayPrecision'))
+
+    return PRECISION_STEPS.includes(stored as DisplayPrecision)
+      ? stored as DisplayPrecision
+      : 8
   } catch {
     return 8
   }
@@ -28,7 +34,8 @@ export const usePrecisionStore = create<PrecisionState>((set) => ({
   precision: readInitialPrecision(),
   togglePrecision: () =>
     set((state) => {
-      const precision = state.precision === 8 ? 4 : 8
+      const currentIndex = PRECISION_STEPS.indexOf(state.precision)
+      const precision = PRECISION_STEPS[(currentIndex + 1) % PRECISION_STEPS.length]
       persistPrecision(precision)
 
       return { precision }
