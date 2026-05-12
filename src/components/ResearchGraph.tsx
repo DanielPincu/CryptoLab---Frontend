@@ -65,7 +65,8 @@ function createLineFillGradient(context: ScriptableContext<'line'>) {
 function drawCandlestickChart(
   canvas: HTMLCanvasElement,
   candles: MarketCandle[],
-  precision: DisplayPrecision
+  precision: DisplayPrecision,
+  progress = 1
 ) {
   const ctx = canvas.getContext('2d')
   if (!ctx) return
@@ -123,6 +124,8 @@ function drawCandlestickChart(
     ctx.fillText(formatAxisPrice(price), width - padding.right + 10, y)
   }
 
+  ctx.globalAlpha = progress
+
   candles.forEach((candle, index) => {
     const centerX = padding.left + candleSlot * index + candleSlot / 2
     const openY = yForPrice(candle.open)
@@ -131,14 +134,17 @@ function drawCandlestickChart(
     const lowY = yForPrice(candle.low)
     const isUp = candle.close >= candle.open
     const color = isUp ? '#10b981' : '#f43f5e'
-    const top = Math.min(openY, closeY)
-    const bodyHeight = Math.max(Math.abs(closeY - openY), 2)
+    const candleCenterY = (openY + closeY) / 2
+    const animatedHighY = candleCenterY + (highY - candleCenterY) * progress
+    const animatedLowY = candleCenterY + (lowY - candleCenterY) * progress
+    const bodyHeight = Math.max(Math.abs(closeY - openY) * progress, 2)
+    const top = candleCenterY - bodyHeight / 2
 
     ctx.strokeStyle = color
     ctx.lineWidth = 1.4
     ctx.beginPath()
-    ctx.moveTo(centerX, highY)
-    ctx.lineTo(centerX, lowY)
+    ctx.moveTo(centerX, animatedHighY)
+    ctx.lineTo(centerX, animatedLowY)
     ctx.stroke()
 
     ctx.fillStyle = isUp ? 'rgba(16,185,129,0.82)' : 'rgba(244,63,94,0.82)'
@@ -149,6 +155,8 @@ function drawCandlestickChart(
     ctx.fill()
     ctx.stroke()
   })
+
+  ctx.globalAlpha = 1
 
   const labelIndexes = [0, Math.floor((candles.length - 1) / 2), candles.length - 1]
   ctx.fillStyle = '#64748b'
@@ -170,6 +178,7 @@ function drawCandlestickChart(
   const labelX = width - padding.right + 6
   const labelCenterX = labelX + labelWidth / 2
 
+  ctx.globalAlpha = progress
   ctx.strokeStyle = 'rgba(16,185,129,0.45)'
   ctx.setLineDash([4, 4])
   ctx.beginPath()
@@ -184,6 +193,7 @@ function drawCandlestickChart(
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillText(latestLabel, labelCenterX, latestY)
+  ctx.globalAlpha = 1
 }
 
 export default function ResearchGraph({ symbol, preset }: Props) {
@@ -210,17 +220,36 @@ export default function ResearchGraph({ symbol, preset }: Props) {
     if (view === 'candles') {
       chartRef.current?.destroy()
       chartRef.current = null
+      let animationFrame = 0
+      let startTime: number | null = null
+      const duration = 260
+      const easeOutCubic = (value: number) => 1 - Math.pow(1 - value, 3)
 
       const draw = () => {
         if (canvasRef.current) {
           drawCandlestickChart(canvasRef.current, data.candles, precision)
         }
       }
+      const animate = (time: number) => {
+        startTime ??= time
 
-      draw()
+        const elapsed = time - startTime
+        const progress = easeOutCubic(Math.min(elapsed / duration, 1))
+
+        if (canvasRef.current) {
+          drawCandlestickChart(canvasRef.current, data.candles, precision, progress)
+        }
+
+        if (progress < 1) {
+          animationFrame = window.requestAnimationFrame(animate)
+        }
+      }
+
+      animationFrame = window.requestAnimationFrame(animate)
       window.addEventListener('resize', draw)
 
       return () => {
+        window.cancelAnimationFrame(animationFrame)
         window.removeEventListener('resize', draw)
       }
     }
