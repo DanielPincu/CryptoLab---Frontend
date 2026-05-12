@@ -48,7 +48,8 @@ export function useLivePrices() {
         return {
           ...t,
           price: typeof live?.price === 'number' ? live.price : t.price,
-          source: live?.source ?? t.source ?? (live ? 'finnhub' : 'binance')
+          ts: live?.ts ?? t.ts ?? null,
+          source: live?.source ?? t.source ?? null
         }
       })
   }, [favorites, livePriceMap, ticks])

@@ -4,7 +4,7 @@ import { apiUserMe } from '../api/user.api'
 import { useAccountStore } from './useAccountStore'
 import { usePriceStore } from './usePriceStore'
 
-export type WsPrice = { symbol: string; price: number; time: number; source?: 'finnhub' | 'binance' | 'backup' }
+export type WsPrice = { symbol: string; price: number; ts: number | null; source: 'finnhub' | 'binance' | null }
 
 type WsStatus = 'connecting' | 'open' | 'closed' | 'error'
 
@@ -127,14 +127,20 @@ async function connectSharedSocket() {
       const data = JSON.parse(String(ev.data))
       const symbol = normalizeSymbol(data?.symbol || data?.s)
       const price = Number(data?.price ?? data?.p)
+      const ts = Number(data?.ts ?? data?.time ?? data?.t)
       const source =
         data?.source === 'finnhub' || data?.source === 'binance'
           ? data.source
-          : undefined
+          : null
 
       if (!symbol || !Number.isFinite(price)) return
 
-      setPrice(symbol, { symbol, price, source })
+      setPrice(symbol, {
+        symbol,
+        price,
+        ts: Number.isFinite(ts) ? ts : null,
+        source
+      })
     }
 
     ws.onerror = () => {

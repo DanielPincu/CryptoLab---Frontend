@@ -24,7 +24,7 @@ export function useResearch() {
   const [historyStatus] = useState('') // kept for UI
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
-  const [quote, setQuote] = useState<{ symbol: string; price?: number; ts?: number } | null>(null)
+  const [quote, setQuote] = useState<{ symbol: string; price?: number; ts?: number; source?: 'binance' } | null>(null)
   const [favLoading, setFavLoading] = useState(false)
   const quoteRequestRef = useRef(0)
   const favorites = useAccountStore((state) => state.account?.favorites ?? EMPTY_FAVORITES)
@@ -53,7 +53,8 @@ export function useResearch() {
       setQuote({
         symbol: normalizeSymbol(q?.symbol ?? requestedSymbol),
         price: Number(q?.price),
-        ts: Number(q?.ts)
+        ts: Number(q?.ts),
+        source: q?.source
       })
     } catch {
       if (quoteRequestRef.current === requestId) {

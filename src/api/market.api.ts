@@ -38,7 +38,7 @@ export async function apiMarketQuote(symbol: string): Promise<{
   symbol: string
   price: number
   ts: number
-  source: string
+  source: 'binance'
 }> {
   return await get(`/market/quote?symbol=${symbol}`)
 }
