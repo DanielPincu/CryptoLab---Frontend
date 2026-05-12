@@ -1,6 +1,8 @@
 import { useTradePanel } from '../hooks/useTradePanel'
 import type { TradePanelProps } from '../interfaces/tradePanelProps.interface'
 import { useAccountStore } from '../state/useAccountStore'
+import { usePrecisionStore } from '../state/usePrecisionStore'
+import { money8 } from '../utils/numberFormat'
 
 export default function TradePanel({
   symbol,
@@ -8,6 +10,7 @@ export default function TradePanel({
   onSuccess
 }: TradePanelProps) {
   const availableCash = useAccountStore((state) => state.account?.cashBalance ?? 0)
+  const precision = usePrecisionStore((state) => state.precision)
 
   const {
     side, setSide,
@@ -41,7 +44,7 @@ export default function TradePanel({
       <div className="mb-4 p-2 rounded bg-gray-800 border border-gray-700 text-sm flex justify-between">
         <span className="text-gray-400">Buying Power</span>
         <span className="font-mono text-emerald-400">
-          ${Number(availableCash ?? 0).toFixed(2)}
+          {money8(Number(availableCash ?? 0), precision)}
         </span>
       </div>
 

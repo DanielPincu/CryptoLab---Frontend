@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLivePrices } from '../hooks/useLivePrices'
+import { usePrecisionStore } from '../state/usePrecisionStore'
+import { fixed8, percent8 } from '../utils/numberFormat'
 
 type Direction = 'up' | 'down' | 'flat'
 
@@ -28,6 +30,7 @@ export default function LivePrices({ selectedSymbol, onSelect }: Props) {
   const [moves, setMoves] = useState<Record<string, PriceMove>>({})
   const initialPricesRef = useRef<Record<string, number>>({})
   const prevPricesRef = useRef<Record<string, number>>({})
+  const precision = usePrecisionStore((state) => state.precision)
 
   // Flash on every live tick, but keep the arrow based on movement from the first observed price.
   useEffect(() => {
@@ -155,9 +158,9 @@ export default function LivePrices({ selectedSymbol, onSelect }: Props) {
                   </div>
                 </div>
 
-                <div className="flex min-w-[8.5rem] flex-col items-end gap-1 font-mono [font-variant-numeric:tabular-nums]">
-                  <span className="text-right text-base font-semibold leading-5 text-emerald-300">
-                    {typeof t.price === 'number' ? t.price.toFixed(4) : 'waiting…'}
+                <div className="flex min-w-[8.5rem] max-w-[14rem] flex-col items-end gap-1 font-mono [font-variant-numeric:tabular-nums]">
+                  <span className="break-all text-right text-base font-semibold leading-5 text-emerald-300">
+                    {typeof t.price === 'number' ? fixed8(t.price, precision) : 'waiting…'}
                   </span>
 
                   {typeof t.price === 'number' && (
@@ -172,7 +175,7 @@ export default function LivePrices({ selectedSymbol, onSelect }: Props) {
                       }
                     >
                       {isUp ? '▲' : isDown ? '▼' : '•'}
-                      {Math.abs(move.percent).toFixed(5)}%
+                      {percent8(Math.abs(move.percent), precision)}
                     </span>
                   )}
                 </div>

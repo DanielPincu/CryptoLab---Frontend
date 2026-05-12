@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import {
   apiMarketSymbols,
   apiMarketQuote
@@ -24,8 +24,9 @@ export function useResearch() {
   const [historyStatus] = useState('') // kept for UI
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
-  const [quote, setQuote] = useState<{ price?: number; ts?: number } | null>(null)
+  const [quote, setQuote] = useState<{ symbol: string; price?: number; ts?: number } | null>(null)
   const [favLoading, setFavLoading] = useState(false)
+  const quoteRequestRef = useRef(0)
   const favorites = useAccountStore((state) => state.account?.favorites ?? EMPTY_FAVORITES)
   const updateFavorites = useAccountStore((state) => state.updateFavorites)
 
@@ -39,14 +40,25 @@ export function useResearch() {
 
   // --- quote ---
   const loadQuote = useCallback(async (nextSymbol: string = symbol) => {
+    const requestedSymbol = normalizeSymbol(nextSymbol)
+    const requestId = quoteRequestRef.current + 1
+    quoteRequestRef.current = requestId
+    setQuote((current) => current?.symbol === requestedSymbol ? current : null)
+
     try {
-      const q = await apiMarketQuote(nextSymbol)
+      const q = await apiMarketQuote(requestedSymbol)
+
+      if (quoteRequestRef.current !== requestId) return
+
       setQuote({
+        symbol: normalizeSymbol(q?.symbol ?? requestedSymbol),
         price: Number(q?.price),
         ts: Number(q?.ts)
       })
     } catch {
-      // silent fail
+      if (quoteRequestRef.current === requestId) {
+        setQuote(null)
+      }
     }
   }, [symbol])
 

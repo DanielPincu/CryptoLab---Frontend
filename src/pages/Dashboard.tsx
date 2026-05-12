@@ -6,6 +6,8 @@ import PortfolioSummary from '../components/PortfolioSummary'
 import { loadAccountIntoStore } from '../state/storeLoaders'
 import { useAccountStore } from '../state/useAccountStore'
 import { useWsPrices } from '../state/useWsPrices'
+import { usePrecisionStore } from '../state/usePrecisionStore'
+import { money8 } from '../utils/numberFormat'
 
 
 export default function Dashboard() {
@@ -25,6 +27,7 @@ export default function Dashboard() {
 
   const ws = useWsPrices()
   const accountCash = useAccountStore((state) => state.account?.cashBalance ?? 0)
+  const precision = usePrecisionStore((state) => state.precision)
 
   const selectedPrice = selectedSymbol
     ? ws.prices?.[selectedSymbol]?.price
@@ -92,7 +95,7 @@ export default function Dashboard() {
           <div className="mb-1 p-3 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between">
             <div className="text-xs text-slate-400">Buying Power</div>
             <div className="text-lg font-semibold text-emerald-400">
-              ${accountCash.toFixed(2)}
+              {money8(accountCash, precision)}
             </div>
           </div>
 

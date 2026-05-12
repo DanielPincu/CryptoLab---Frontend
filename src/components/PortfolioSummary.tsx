@@ -4,6 +4,8 @@ import { usePortfolioStore } from '../state/usePortfolioStore'
 import { useAccountStore } from '../state/useAccountStore'
 import { usePositionStore } from '../state/usePositionStore'
 import { usePriceStore } from '../state/usePriceStore'
+import { usePrecisionStore } from '../state/usePrecisionStore'
+import { money8, percent8 } from '../utils/numberFormat'
 
 interface Props {
   refreshKey?: number
@@ -16,6 +18,7 @@ export default function PortfolioSummary({ refreshKey }: Props) {
   const cashBalance = useAccountStore((state) => state.account?.cashBalance ?? null)
   const positions = usePositionStore((state) => state.positions)
   const prices = usePriceStore((state) => state.prices)
+  const precision = usePrecisionStore((state) => state.precision)
 
   // initial load
   useEffect(() => {
@@ -95,63 +98,63 @@ export default function PortfolioSummary({ refreshKey }: Props) {
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Total Value</div>
           <div className="text-lg font-semibold text-white">
-            ${(liveSummary.totalValue ?? 0).toFixed(2)}
+            {money8(liveSummary.totalValue ?? 0, precision)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Cash Balance</div>
           <div className="text-lg font-semibold text-white">
-            ${(liveSummary.cashBalance ?? 0).toFixed(2)}
+            {money8(liveSummary.cashBalance ?? 0, precision)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Positions Value</div>
           <div className="text-lg font-semibold text-white">
-            ${(liveSummary.positionsValue ?? 0).toFixed(2)}
+            {money8(liveSummary.positionsValue ?? 0, precision)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Unrealized PnL</div>
           <div className={`text-lg font-semibold ${pnlColor(liveSummary.unrealizedPnl ?? 0)}`}>
-            ${(liveSummary.unrealizedPnl ?? 0).toFixed(2)}
+            {money8(liveSummary.unrealizedPnl ?? 0, precision)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Realized PnL</div>
           <div className={`text-lg font-semibold ${pnlColor(liveSummary.realizedPnl ?? 0)}`}>
-            ${(liveSummary.realizedPnl ?? 0).toFixed(2)}
+            {money8(liveSummary.realizedPnl ?? 0, precision)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Net PnL</div>
           <div className={`text-lg font-semibold ${pnlColor(liveSummary.netPnl ?? 0)}`}>
-            ${(liveSummary.netPnl ?? 0).toFixed(2)}
+            {money8(liveSummary.netPnl ?? 0, precision)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Total Return</div>
           <div className={`text-lg font-semibold ${pnlColor(liveSummary.totalReturnPct ?? 0)}`}>
-            {((liveSummary.totalReturnPct ?? 0) * 100).toFixed(2)}%
+            {percent8((liveSummary.totalReturnPct ?? 0) * 100, precision)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Total Invested</div>
           <div className="text-lg font-semibold text-white">
-            ${(liveSummary.totalInvested ?? 0).toFixed(2)}
+            {money8(liveSummary.totalInvested ?? 0, precision)}
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div className="text-xs text-slate-400">Total Sold</div>
           <div className="text-lg font-semibold text-white">
-            ${(liveSummary.totalSold ?? 0).toFixed(2)}
+            {money8(liveSummary.totalSold ?? 0, precision)}
           </div>
         </div>
 

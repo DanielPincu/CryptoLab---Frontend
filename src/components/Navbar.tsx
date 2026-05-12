@@ -2,11 +2,14 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useSession } from '../auth/Session'
 import { useState, useEffect } from 'react'
 import MarketTicker from './MarketTicker'
+import { usePrecisionStore } from '../state/usePrecisionStore'
 
 export default function Navbar() {
   const navigate = useNavigate()
   const { user, isAuthenticated, isLoading, logout } = useSession()
   const [open, setOpen] = useState(false)
+  const precision = usePrecisionStore((state) => state.precision)
+  const togglePrecision = usePrecisionStore((state) => state.togglePrecision)
 
   useEffect(() => {
     // Reserve scrollbar space globally to avoid layout shift between pages
@@ -127,12 +130,24 @@ export default function Navbar() {
 
           <div className="flex items-center gap-4">
             {isAuthenticated && (
-              <Link
-                to="/profile"
-                className="hidden md:block text-sm font-semibold text-emerald-300 hover:text-emerald-400 transition"
-              >
-                {user?.username}
-              </Link>
+              <div className="hidden md:flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={togglePrecision}
+                  className="flex items-center gap-1 rounded border border-slate-700 px-2 py-1 text-xs font-semibold text-slate-300 transition hover:border-emerald-500/50 hover:bg-slate-800 hover:text-emerald-300"
+                  aria-label={`Switch to ${precision === 8 ? 4 : 8} decimal precision`}
+                  title={`Showing ${precision} decimals`}
+                >
+                  <span>Precision</span>
+                  <span className="font-mono">.{precision}</span>
+                </button>
+                <Link
+                  to="/profile"
+                  className="text-sm font-semibold text-emerald-300 hover:text-emerald-400 transition"
+                >
+                  {user?.username}
+                </Link>
+              </div>
             )}
 
             {!isAuthenticated ? (
@@ -185,6 +200,14 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              <button
+                type="button"
+                onClick={togglePrecision}
+                className="w-fit rounded border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-emerald-500/50 hover:bg-slate-800 hover:text-emerald-300"
+                aria-label={`Switch to ${precision === 8 ? 4 : 8} decimal precision`}
+              >
+                Precision <span className="font-mono">.{precision}</span>
+              </button>
               <Link
                 to="/profile"
                 onClick={() => setOpen(false)}

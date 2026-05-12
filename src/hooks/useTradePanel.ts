@@ -3,6 +3,8 @@ import { executeTrade } from '../api/trade.api'
 import type { TradePayload } from '../interfaces/tradePayload.interface'
 import { loadPositionsIntoStore } from '../state/storeLoaders'
 import { usePositionStore } from '../state/usePositionStore'
+import { usePrecisionStore } from '../state/usePrecisionStore'
+import { fixed8, money8 } from '../utils/numberFormat'
 
 type Mode = 'QTY' | 'USD'
 
@@ -20,6 +22,7 @@ export function useTradePanel(
   const [success, setSuccess] = useState<string | null>(null)
   const [positionsLoaded, setPositionsLoaded] = useState(false)
   const positions = usePositionStore((state) => state.positions)
+  const precision = usePrecisionStore((state) => state.precision)
 
   async function loadPositions() {
     try {
@@ -127,13 +130,13 @@ export function useTradePanel(
   if (hasPrice && symbol && value === 'MAX' && side === 'BUY') {
     const bufferedCash = cash * 0.999
     const qty = currentPrice > 0 ? bufferedCash / currentPrice : 0
-    estimatedText = `Using ~99.9% balance ($${bufferedCash.toFixed(2)}) → ${qty.toFixed(6)} ${symbol}`
+    estimatedText = `Using ~99.9% balance (${money8(bufferedCash, precision)}) → ${fixed8(qty, precision)} ${symbol}`
     if (bufferedCash <= 0) insufficientCash = true
   }
 
   if (hasPrice && symbol && value === 'ALL' && side === 'SELL') {
     const total = qtyOwned * currentPrice
-    estimatedText = `Selling ${qtyOwned.toFixed(6)} ${symbol} → $${total.toFixed(2)}`
+    estimatedText = `Selling ${fixed8(qtyOwned, precision)} ${symbol} → ${money8(total, precision)}`
     if (qtyOwned <= 0) insufficientPosition = true
   }
 
@@ -141,21 +144,21 @@ export function useTradePanel(
     if (side === 'BUY') {
       if (mode === 'QTY') {
         const total = numeric * currentPrice
-        estimatedText = `Estimated total: $${total.toFixed(2)}`
+        estimatedText = `Estimated total: ${money8(total, precision)}`
         if (total > cash) insufficientCash = true
       } else {
         const qty = numeric / currentPrice
-        estimatedText = `Estimated quantity: ${qty.toFixed(6)} ${symbol ?? ''}`
+        estimatedText = `Estimated quantity: ${fixed8(qty, precision)} ${symbol ?? ''}`
         if (numeric > cash) insufficientCash = true
       }
     } else {
       if (mode === 'QTY') {
         const total = numeric * currentPrice
-        estimatedText = `Estimated total: $${total.toFixed(2)}`
+        estimatedText = `Estimated total: ${money8(total, precision)}`
         if (numeric > qtyOwned) insufficientPosition = true
       } else {
         const qty = numeric / currentPrice
-        estimatedText = `Estimated quantity: ${qty.toFixed(6)} ${symbol ?? ''}`
+        estimatedText = `Estimated quantity: ${fixed8(qty, precision)} ${symbol ?? ''}`
         if (qty > qtyOwned) insufficientPosition = true
       }
     }

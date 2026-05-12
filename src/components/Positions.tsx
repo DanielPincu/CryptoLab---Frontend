@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { usePositions } from '../hooks/usePositions'
 import type { PositionsProps } from '../interfaces/positionProps.interface'
+import { usePrecisionStore } from '../state/usePrecisionStore'
+import { fixed8, money8, percent8 } from '../utils/numberFormat'
 
 export default function Positions({
   positions,
@@ -13,6 +15,7 @@ export default function Positions({
     positions,
     refreshKey
   })
+  const precision = usePrecisionStore((state) => state.precision)
 
   useEffect(() => {
     onCountChange?.(livePositions.length)
@@ -42,25 +45,25 @@ export default function Positions({
 
             <div className="flex justify-between text-slate-400">
               <span>Quantity</span>
-              <span>{p.qty.toFixed(8)}</span>
+              <span>{fixed8(p.qty, precision)}</span>
             </div>
 
             <div className="flex justify-between text-slate-400">
               <span>Avg Entry</span>
-              <span>${p.avgEntryPrice.toFixed(4)}</span>
+              <span>{money8(p.avgEntryPrice, precision)}</span>
             </div>
 
             <div className="flex justify-between text-slate-400">
               <span>Current Price</span>
               <span>
-                ${p.currentPrice != null ? p.currentPrice.toFixed(4) : '—'}
+                {p.currentPrice != null ? money8(p.currentPrice, precision) : '—'}
               </span>
             </div>
 
             <div className="flex justify-between text-slate-400">
               <span>Market Value</span>
               <span>
-                ${p.marketValue != null ? p.marketValue.toFixed(4) : '—'}
+                {p.marketValue != null ? money8(p.marketValue, precision) : '—'}
               </span>
             </div>
 
@@ -75,7 +78,7 @@ export default function Positions({
               }
             >
               <span>Position Cost</span>
-              <span>${p.positionCost.toFixed(4)}</span>
+              <span>{money8(p.positionCost, precision)}</span>
             </div>
 
             <div
@@ -88,12 +91,12 @@ export default function Positions({
             >
               <span>Unrealized PnL</span>
               <span>
-                ${p.unrealizedPnl != null
-                  ? p.unrealizedPnl.toFixed(4)
+                {p.unrealizedPnl != null
+                  ? money8(p.unrealizedPnl, precision)
                   : '—'}
                 {p.unrealizedPnlPercent != null && (
                   <span className="ml-2 text-xs">
-                    ({p.unrealizedPnlPercent.toFixed(2)}%)
+                    ({percent8(p.unrealizedPnlPercent, precision)})
                   </span>
                 )}
               </span>

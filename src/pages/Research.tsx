@@ -3,10 +3,17 @@ import { useResearch } from '../hooks/useResearch'
 import TradePanel from '../components/TradePanel'
 import Positions from '../components/Positions'
 import ResearchGraph from '../components/ResearchGraph'
+import { usePrecisionStore } from '../state/usePrecisionStore'
 import { useWsPrices } from '../state/useWsPrices'
+import type { DisplayPrecision } from '../state/usePrecisionStore'
+import { fixed8 } from '../utils/numberFormat'
 
 function cleanSymbol(value: string) {
   return value.replace(/^BINANCE:/i, '').toUpperCase().trim()
+}
+
+function formatPrice(price: number, precision: DisplayPrecision) {
+  return fixed8(price, precision)
 }
 
 export default function Research() {
@@ -30,8 +37,10 @@ export default function Research() {
   } = useResearch()
   const [symbolSearch, setSymbolSearch] = useState('')
   const ws = useWsPrices(symbol ? [symbol] : [])
+  const precision = usePrecisionStore((state) => state.precision)
   const livePrice = symbol ? ws.prices?.[symbol]?.price : undefined
-  const currentPrice = livePrice ?? quote?.price
+  const quotePrice = quote?.symbol === symbol ? quote.price : undefined
+  const currentPrice = livePrice ?? quotePrice
   const filteredSymbols = useMemo(() => {
     const query = cleanSymbol(symbolSearch)
 
@@ -40,11 +49,12 @@ export default function Research() {
     return symbols.filter((s) => cleanSymbol(s.symbol).includes(query))
   }, [symbolSearch, symbols])
 
-  function selectResearchSymbol(nextSymbol: string) {
+  async function selectResearchSymbol(nextSymbol: string) {
     const normalized = cleanSymbol(nextSymbol)
 
     if (!normalized) return
 
+    await loadQuote(normalized)
     setSymbol(normalized)
     setSymbolSearch('')
     setPreset('year')
@@ -84,7 +94,7 @@ export default function Research() {
             onChange={(e) => setSymbolSearch(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && filteredSymbols[0]) {
-                selectResearchSymbol(filteredSymbols[0].symbol)
+                void selectResearchSymbol(filteredSymbols[0].symbol)
               }
             }}
             placeholder="Search symbol..."
@@ -100,7 +110,9 @@ export default function Research() {
                   <button
                     key={s.symbol}
                     type="button"
-                    onClick={() => selectResearchSymbol(optionSymbol)}
+                    onClick={() => {
+                      void selectResearchSymbol(optionSymbol)
+                    }}
                     className="flex w-full items-center justify-between px-3 py-2 text-left font-mono text-sm text-slate-200 transition hover:bg-slate-800 hover:text-emerald-300"
                   >
                     <span>{optionSymbol}</span>
@@ -117,7 +129,7 @@ export default function Research() {
         <select
           value={symbol}
           onChange={(e) => {
-            selectResearchSymbol(e.target.value)
+            void selectResearchSymbol(e.target.value)
           }}
           className="w-full rounded border border-slate-700 bg-slate-800 px-3 py-2 sm:w-80"
         >
@@ -171,8 +183,8 @@ export default function Research() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
         <div className="rounded-lg border border-slate-800 bg-slate-950 p-3">
           <div className="text-xs text-slate-400">Quote</div>
-          <div className="mt-1 font-semibold text-emerald-300">
-            {currentPrice ? currentPrice.toFixed(4) : '—'}
+          <div className="mt-1 break-all font-mono font-semibold text-emerald-300 [font-variant-numeric:tabular-nums]">
+            {typeof currentPrice === 'number' ? formatPrice(currentPrice, precision) : 'waiting for quote...'}
           </div>
         </div>
         

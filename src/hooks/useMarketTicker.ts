@@ -4,7 +4,10 @@ import type {
   IMarketTickerProps,
   IUseMarketTickerResult
 } from '../interfaces/marketTicker.interface'
+import { usePrecisionStore } from '../state/usePrecisionStore'
 import { useWsPrices } from '../state/useWsPrices'
+import type { DisplayPrecision } from '../state/usePrecisionStore'
+import { money8, percent8 } from '../utils/numberFormat'
 
 const FAVORITE_ORDER = [
   'BTCUSDT',
@@ -19,13 +22,6 @@ const FAVORITE_ORDER = [
   'LTCUSDT'
 ]
 
-const priceFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 5,
-  maximumFractionDigits: 5
-})
-
 function normalizeSymbol(symbol: string) {
   return symbol.toUpperCase().trim()
 }
@@ -34,8 +30,8 @@ function displaySymbol(symbol: string) {
   return symbol.replace(/(USDT|USD)$/i, '')
 }
 
-function formatPrice(price: number) {
-  return priceFormatter.format(price)
+function formatPrice(price: number, precision: DisplayPrecision) {
+  return money8(price, precision)
 }
 
 export function useMarketTicker({
@@ -43,6 +39,7 @@ export function useMarketTicker({
   symbols
 }: Pick<IMarketTickerProps, 'maxItems' | 'symbols'> = {}): IUseMarketTickerResult {
   const { status, prices } = useWsPrices(symbols)
+  const precision = usePrecisionStore((state) => state.precision)
   const initialPricesRef = useRef<Record<string, number>>({})
   const [moves, setMoves] = useState<Record<string, IMarketTickerMove>>({})
 
@@ -70,12 +67,12 @@ export function useMarketTicker({
           symbol: tick.symbol,
           displaySymbol: displaySymbol(tick.symbol),
           price: tick.price,
-          priceLabel: formatPrice(tick.price),
-          percentLabel: `${Math.abs(move.percent).toFixed(5)}%`,
+          priceLabel: formatPrice(tick.price, precision),
+          percentLabel: percent8(Math.abs(move.percent), precision),
           move
         }
       })
-  }, [maxItems, moves, prices, symbols])
+  }, [maxItems, moves, precision, prices, symbols])
 
   useEffect(() => {
     const nextMoves: Record<string, IMarketTickerMove> = {}

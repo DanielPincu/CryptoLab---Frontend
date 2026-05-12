@@ -1,18 +1,47 @@
 import { useEffect, useRef } from 'react'
 import { Chart } from 'chart.js/auto'
+import type { TooltipItem } from 'chart.js'
 import { useMarketHistory } from '../hooks/useMarketHistory'
 import type { HistoryPreset } from '../hooks/useMarketHistory'
+import { usePrecisionStore } from '../state/usePrecisionStore'
+import type { DisplayPrecision } from '../state/usePrecisionStore'
+import { fixed8 } from '../utils/numberFormat'
 
 interface Props {
   symbol: string
   preset: HistoryPreset
 }
 
+function formatPrice(price: number, precision: DisplayPrecision) {
+  return fixed8(price, precision)
+}
+
+function formatAxisPrice(price: number) {
+  const absPrice = Math.abs(price)
+
+  if (absPrice >= 1) {
+    return price.toLocaleString('en-US', {
+      maximumFractionDigits: 2
+    })
+  }
+
+  if (absPrice >= 0.01) {
+    return price.toLocaleString('en-US', {
+      maximumFractionDigits: 4
+    })
+  }
+
+  return price.toLocaleString('en-US', {
+    maximumFractionDigits: 8
+  })
+}
+
 export default function ResearchGraph({ symbol, preset }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const chartRef = useRef<Chart | null>(null)
+  const chartRef = useRef<Chart<'line', number[], string> | null>(null)
 
   const data = useMarketHistory(symbol, preset)
+  const precision = usePrecisionStore((state) => state.precision)
 
   useEffect(() => {
     if (!data) return
@@ -20,12 +49,20 @@ export default function ResearchGraph({ symbol, preset }: Props) {
     const ctx = canvasRef.current?.getContext('2d')
     if (!ctx) return
 
+    const tooltipLabel = (context: TooltipItem<'line'>) => {
+      const value = typeof context.parsed.y === 'number' ? context.parsed.y : Number(context.raw)
+
+      return `${context.dataset.label}: ${Number.isFinite(value) ? formatPrice(value, precision) : context.formattedValue}`
+    }
+    const tickLabel = (value: string | number) => {
+      const numericValue = Number(value)
+
+      return Number.isFinite(numericValue) ? formatAxisPrice(numericValue) : String(value)
+    }
+
     if (chartRef.current) {
-      chartRef.current.data.labels = data.labels
-      chartRef.current.data.datasets[0].data = data.closes
-      chartRef.current.data.datasets[0].label = symbol
-      chartRef.current.update()
-      return
+      chartRef.current.destroy()
+      chartRef.current = null
     }
 
     chartRef.current = new Chart(ctx, {
@@ -58,7 +95,12 @@ export default function ResearchGraph({ symbol, preset }: Props) {
           intersect: false
         },
         plugins: {
-          legend: { display: true }
+          legend: { display: true },
+          tooltip: {
+            callbacks: {
+              label: tooltipLabel
+            }
+          }
         },
         animation: {
           duration: 250
@@ -68,12 +110,15 @@ export default function ResearchGraph({ symbol, preset }: Props) {
             ticks: { maxTicksLimit: 8 }
           },
           y: {
-            display: true
+            display: true,
+            ticks: {
+              callback: tickLabel
+            }
           }
         }
       }
     })
-  }, [data, symbol])
+  }, [data, precision, symbol])
 
   useEffect(() => {
     return () => {

@@ -6,15 +6,16 @@ import type {
   LeaderboardResponse,
   LeaderboardTrade,
 } from '../interfaces/leaderboard.interface'
+import { usePrecisionStore } from '../state/usePrecisionStore'
+import type { DisplayPrecision } from '../state/usePrecisionStore'
+import { fixed8, money8 } from '../utils/numberFormat'
 
-function money(value: number) {
-  return `$${value.toFixed(2)}`
+function money(value: number, precision: DisplayPrecision) {
+  return money8(value, precision)
 }
 
-function quantity(value: number) {
-  return value.toLocaleString(undefined, {
-    maximumFractionDigits: 8,
-  })
+function quantity(value: number, precision: DisplayPrecision) {
+  return fixed8(value, precision)
 }
 
 function dateTime(value: string) {
@@ -33,20 +34,21 @@ function TradeSummary({
   positive: boolean
 }) {
   const pnl = trade?.realizedPnl ?? fallback
+  const precision = usePrecisionStore((state) => state.precision)
 
   return (
     <div className="rounded-md border border-gray-700 bg-gray-950 px-3 py-2">
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs uppercase tracking-wider text-gray-500">{label}</span>
         <span className={positive ? 'text-sm font-semibold text-green-400' : 'text-sm font-semibold text-red-400'}>
-          {money(pnl)}
+          {money(pnl, precision)}
         </span>
       </div>
 
       {trade && (
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-400">
           <span className="font-semibold text-gray-300">{trade.symbol}</span>
-          <span>{quantity(trade.qty)} @ {money(trade.price)}</span>
+          <span>{quantity(trade.qty, precision)} @ {money(trade.price, precision)}</span>
           <span>{dateTime(trade.executedAt)}</span>
         </div>
       )}
@@ -55,6 +57,8 @@ function TradeSummary({
 }
 
 function PositionsList({ positions }: { positions: LeaderboardPosition[] }) {
+  const precision = usePrecisionStore((state) => state.precision)
+
   if (positions.length === 0) {
     return <div className="text-xs text-gray-500">No open positions</div>
   }
@@ -68,10 +72,10 @@ function PositionsList({ positions }: { positions: LeaderboardPosition[] }) {
         >
           <div>
             <div className="font-semibold text-gray-200">{position.symbol}</div>
-            <div className="text-gray-500">Qty {quantity(position.qty)}</div>
+            <div className="text-gray-500">Qty {quantity(position.qty, precision)}</div>
           </div>
           <div className="text-right text-gray-400">
-            <div>Avg {money(position.avgEntryPrice)}</div>
+            <div>Avg {money(position.avgEntryPrice, precision)}</div>
             <div className="text-gray-600">{dateTime(position.updatedAt)}</div>
           </div>
         </div>
@@ -81,6 +85,8 @@ function PositionsList({ positions }: { positions: LeaderboardPosition[] }) {
 }
 
 function SuccessfulTradesList({ trades }: { trades: LeaderboardTrade[] }) {
+  const precision = usePrecisionStore((state) => state.precision)
+
   if (trades.length === 0) {
     return <div className="text-xs text-gray-500">No profitable closed trades yet</div>
   }
@@ -94,10 +100,10 @@ function SuccessfulTradesList({ trades }: { trades: LeaderboardTrade[] }) {
         >
           <div>
             <div className="font-semibold text-gray-200">{trade.symbol}</div>
-            <div className="text-gray-500">{quantity(trade.qty)} @ {money(trade.price)}</div>
+            <div className="text-gray-500">{quantity(trade.qty, precision)} @ {money(trade.price, precision)}</div>
           </div>
           <div className="text-right">
-            <div className="font-semibold text-green-400">{money(trade.realizedPnl)}</div>
+            <div className="font-semibold text-green-400">{money(trade.realizedPnl, precision)}</div>
             <div className="text-gray-600">{dateTime(trade.executedAt)}</div>
           </div>
         </div>
@@ -115,6 +121,8 @@ function LeaderboardCard({
   rank: string
   totalClassName: string
 }) {
+  const precision = usePrecisionStore((state) => state.precision)
+
   return (
     <div className="rounded-lg border border-gray-800 bg-gray-800/80 p-4">
       <div className="flex items-start justify-between gap-4">
@@ -129,7 +137,7 @@ function LeaderboardCard({
 
         <div className="text-right">
           <div className={`text-lg font-bold ${totalClassName}`}>
-            {money(entry.totalPnl)}
+            {money(entry.totalPnl, precision)}
           </div>
           <div className="text-xs uppercase tracking-wider text-gray-500">Total PnL</div>
         </div>
