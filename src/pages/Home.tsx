@@ -1,9 +1,17 @@
 import { Link } from 'react-router-dom'
 import { useSession } from '../auth/Session'
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import LuckyStrikeCard from '../components/LuckyStrikeCard'
+import PortfolioSummary from '../components/PortfolioSummary'
+import {
+  loadAccountIntoStore,
+  loadLatestPricesIntoStore,
+  loadPositionsIntoStore
+} from '../state/storeLoaders'
+import { usePositionStore } from '../state/usePositionStore'
+import { useWsPrices } from '../state/useWsPrices'
 
 const featureCards = [
   {
@@ -27,26 +35,43 @@ const authedActions = [
   {
     to: '/dashboard',
     title: 'Dashboard',
-    description: 'Trade, monitor prices, and review your portfolio.',
-    accent: 'text-emerald-300'
+    description: 'Trade, monitor prices, and review your portfolio.'
   },
   {
     to: '/research',
     title: 'Research',
-    description: 'Analyze symbols and compare market history.',
-    accent: 'text-sky-300'
+    description: 'Analyze symbols and compare market history.'
   },
   {
     to: '/positions',
     title: 'Positions',
-    description: 'Review open holdings and recent performance.',
-    accent: 'text-violet-300'
+    description: 'Review open holdings and recent performance.'
   },
   {
     to: '/transactions',
     title: 'Transactions',
-    description: 'Audit your trade history and account activity.',
-    accent: 'text-amber-300'
+    description: 'Audit your trade history and account activity.'
+  }
+]
+
+const portfolioHomeLinks = [
+  {
+    to: '/dashboard',
+    label: 'Trade desk',
+    value: 'Live market',
+    accent: 'border-emerald-500/30 bg-emerald-500/5 text-emerald-300'
+  },
+  {
+    to: '/positions',
+    label: 'Holdings',
+    value: 'Open positions',
+    accent: 'border-violet-500/30 bg-violet-500/5 text-violet-300'
+  },
+  {
+    to: '/transactions',
+    label: 'History',
+    value: 'Recent activity',
+    accent: 'border-amber-500/30 bg-amber-500/5 text-amber-300'
   }
 ]
 
@@ -54,8 +79,24 @@ export default function Home() {
   const { isAuthenticated, user, isLoading, logout } = useSession()
   const navigate = useNavigate()
   const [cookieDismissed, setCookieDismissed] = useState(() => !!localStorage.getItem('cookieNoticeSeen'))
+  const positions = usePositionStore((state) => state.positions)
+  const positionSymbols = useMemo(
+    () => [...new Set(positions.map((position) => position.symbol).filter(Boolean))],
+    [positions]
+  )
+  const { status: priceStatus } = useWsPrices(isAuthenticated ? positionSymbols : [])
 
   const shouldShowCookiePopup = isAuthenticated && !cookieDismissed
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    void Promise.all([
+      loadAccountIntoStore(),
+      loadPositionsIntoStore(),
+      loadLatestPricesIntoStore()
+    ])
+  }, [isAuthenticated])
 
   if (isLoading) {
     return (
@@ -69,17 +110,66 @@ export default function Home() {
     <div className="min-h-[calc(100vh-72px)] overflow-hidden bg-slate-950">
       <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-14">
         <div className="flex min-h-[520px] flex-col justify-center">
-          <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-300">
-            Zero-Risk Paper Trading
-          </div>
+          {isAuthenticated ? (
+            <div className="w-full space-y-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sky-300">
+                    Portfolio Home
+                  </div>
+                  <h1 className="text-3xl font-bold tracking-normal text-slate-50 sm:text-4xl">
+                    Welcome back{user?.username ? `, ${user.username}` : ''}
+                  </h1>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
+                    Your current account snapshot, performance, and next moves are ready.
+                  </p>
+                </div>
 
-          <h1 className="max-w-3xl text-4xl font-bold tracking-normal text-slate-50 sm:text-5xl lg:text-6xl">
-            Practice crypto trading without risking real money.
-          </h1>
+                <div className="w-fit rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
+                  <div className="text-xs uppercase tracking-wide text-slate-500">Live feed</div>
+                  <div className="mt-1 text-sm font-semibold text-emerald-300">
+                    {priceStatus === 'open' ? 'Streaming' : 'Syncing'}
+                  </div>
+                </div>
+              </div>
 
-          <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-            CryptoLab is a paper trading workspace where you can research markets, place simulated trades, and learn portfolio management with zero real-money risk.
-          </p>
+              <PortfolioSummary />
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {portfolioHomeLinks.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={`group rounded-lg border p-4 transition hover:border-slate-600 hover:bg-slate-900/80 ${item.accent}`}
+                  >
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      {item.label}
+                    </div>
+                    <div className="mt-2 text-base font-semibold text-slate-100">
+                      {item.value}
+                    </div>
+                    <div className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500 group-hover:text-slate-300">
+                      Open
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-300">
+                Zero-Risk Paper Trading
+              </div>
+
+              <h1 className="max-w-3xl text-4xl font-bold tracking-normal text-slate-50 sm:text-5xl lg:text-6xl">
+                Practice crypto trading without risking real money.
+              </h1>
+
+              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+                CryptoLab is a paper trading workspace where you can research markets, place simulated trades, and learn portfolio management with zero real-money risk.
+              </p>
+            </>
+          )}
 
           {!isAuthenticated ? (
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -116,17 +206,19 @@ export default function Home() {
             </div>
           )}
 
-          <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {featureCards.map((feature) => (
-              <div
-                key={feature.title}
-                className={`rounded-lg border p-4 ${feature.accent}`}
-              >
-                <div className="text-sm font-semibold text-slate-100">{feature.title}</div>
-                <p className="mt-2 text-sm leading-6 text-slate-400">{feature.description}</p>
-              </div>
-            ))}
-          </div>
+          {!isAuthenticated && (
+            <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {featureCards.map((feature) => (
+                <div
+                  key={feature.title}
+                  className={`rounded-lg border p-4 ${feature.accent}`}
+                >
+                  <div className="text-sm font-semibold text-slate-100">{feature.title}</div>
+                  <p className="mt-2 text-sm leading-6 text-slate-400">{feature.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="relative flex items-center lg:min-h-[640px]">
@@ -167,7 +259,7 @@ export default function Home() {
                       to={action.to}
                       className="group rounded-lg border border-slate-800 bg-slate-950/70 p-4 transition hover:border-slate-700 hover:bg-slate-900"
                     >
-                      <div className={`text-sm font-semibold ${action.accent}`}>{action.title}</div>
+                      <div className="text-sm font-semibold text-emerald-300">{action.title}</div>
                       <p className="mt-2 text-sm leading-6 text-slate-400">{action.description}</p>
                       <div className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500 group-hover:text-slate-300">
                         Open
