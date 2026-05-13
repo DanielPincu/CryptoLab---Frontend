@@ -28,7 +28,7 @@ export default function TradePanel({
   } = useTradePanel(symbol, currentPrice, availableCash, onSuccess)
 
   return (
-    <div className="p-4 bg-gray-900 rounded-lg text-white">
+    <div className="p-4 mb-20 bg-gray-900 rounded-lg text-white">
       <h1 className="text-xl font-semibold mb-4">Trade</h1>
 
       <div className="mb-4 p-2 rounded bg-gray-800 border border-gray-700 text-sm">
@@ -129,21 +129,18 @@ export default function TradePanel({
         className="w-full mb-2 p-2 rounded bg-gray-800"
       />
 
-      <div className="min-h-[44px] mb-1">
+      <div className="mb-2 min-h-[52px] text-sm">
         {estimatedText && (
-          <div className="text-sm text-gray-400">{estimatedText}</div>
+          <div className="text-gray-400">{estimatedText}</div>
         )}
-      </div>
-
-      <div className="min-h-[40px] mb-3">
-        {insufficientCash && (
-          <div className="text-sm text-red-400">
-            You do not have enough available cash for this order
-          </div>
-        )}
-        {insufficientPosition && (
-          <div className="text-sm text-red-400">
-            You do not have enough position to execute this sell order
+        {(insufficientCash || insufficientPosition) && (
+          <div className="mt-1 text-red-400">
+          {insufficientCash && (
+            <div>You do not have enough available cash for this order</div>
+          )}
+          {insufficientPosition && (
+            <div>You do not have enough position to execute this sell order</div>
+          )}
           </div>
         )}
       </div>
@@ -173,9 +170,9 @@ export default function TradePanel({
         )}
       </div>
 
-      <div className="min-h-[48px] mb-2">
-        {error && <div className="text-red-400 text-sm">{error}</div>}
-        {success && <div data-testid="trade-success" className="text-green-400 text-sm">{success}</div>}
+      <div className="mb-2 min-h-[24px] text-sm">
+        {error && <div className="text-red-400">{error}</div>}
+        {success && <div data-testid="trade-success" className="text-green-400">{success}</div>}
       </div>
 
       <button

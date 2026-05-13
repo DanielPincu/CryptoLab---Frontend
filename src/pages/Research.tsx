@@ -75,7 +75,7 @@ export default function Research() {
   }, [showPositions])
 
   return (
-    <div className="p-6 mx-auto overflow-x-hidden md:h-[calc(100vh-73px)] ">
+    <div className="box-border flex flex-col px-5 py-4 mx-auto overflow-x-hidden">
       
       {error && (
         <div className="text-rose-400 mb-4 text-sm">{error}</div>
@@ -87,7 +87,7 @@ export default function Research() {
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-4 mb-4">
+      <div className="flex flex-wrap items-center gap-3 mb-3">
         <div className="relative w-full sm:w-72">
           <input
             value={symbolSearch}
@@ -98,7 +98,7 @@ export default function Research() {
               }
             }}
             placeholder="Search symbol..."
-            className="w-full rounded border border-slate-700 bg-slate-800 px-3 py-2 font-mono text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/10"
+            className="w-full rounded border border-slate-700 bg-slate-800 px-3 py-1.5 font-mono text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/10"
           />
 
           {symbolSearch && filteredSymbols.length > 0 && (
@@ -131,7 +131,7 @@ export default function Research() {
           onChange={(e) => {
             void selectResearchSymbol(e.target.value)
           }}
-          className="w-full rounded border border-slate-700 bg-slate-800 px-3 py-2 sm:w-80"
+          className="w-full rounded border border-slate-700 bg-slate-800 px-3 py-1.5 sm:w-80"
         >
           {filteredSymbols.map((s) => (
             <option key={s.symbol} value={cleanSymbol(s.symbol)}>
@@ -148,7 +148,7 @@ export default function Research() {
                 setPreset(k)
               }}
               className={
-                'px-3 py-1.5 rounded-full border border-slate-800 text-sm transition ' +
+                'px-3 py-1 rounded-full border border-slate-800 text-sm transition ' +
                 (preset === k
                   ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300 font-semibold'
                   : 'bg-slate-900')
@@ -163,7 +163,7 @@ export default function Research() {
           <button
             onClick={handleRemoveFavorite}
             disabled={favLoading}
-            className="px-3 py-1.5 rounded-lg border border-rose-500/40 bg-rose-500/10 text-rose-300 text-sm disabled:opacity-50"
+            className="px-3 py-1 rounded-lg border border-rose-500/40 bg-rose-500/10 text-rose-300 text-sm disabled:opacity-50"
           >
             Remove from Favorites
           </button>
@@ -171,7 +171,7 @@ export default function Research() {
           <button
             onClick={handleAddFavorite}
             disabled={favLoading}
-            className="px-3 py-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 text-sm disabled:opacity-50"
+            className="px-3 py-1 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 text-sm disabled:opacity-50"
           >
             Add to Favorites
           </button>
@@ -180,18 +180,18 @@ export default function Research() {
         <span className="text-xs text-slate-400">{historyStatus}</span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-        <div className="rounded-lg border border-slate-800 bg-slate-950 p-3">
-          <div className="text-xs text-slate-400">Quote</div>
-          <div className="mt-1 break-all font-mono font-semibold text-emerald-300 [font-variant-numeric:tabular-nums]">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5">
+          <span className="shrink-0 text-[11px] leading-none text-slate-400">Quote</span>
+          <span className="min-w-0 break-all font-mono text-sm font-semibold leading-tight text-emerald-300 [font-variant-numeric:tabular-nums]">
             {typeof currentPrice === 'number' ? formatPrice(currentPrice, precision) : 'waiting for quote...'}
-          </div>
+          </span>
         </div>
         
       </div>
 
-      <div className={`grid grid-cols-1 md:items-start ${showPositions ? 'md:grid-cols-[2fr_1fr_1fr]' : 'md:grid-cols-[2fr_1fr_48px]'} gap-6 md:h-[calc(100%-7.5rem)]`}>
-        <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950 p-3 h-[585px]">
+      <div className={`grid min-h-0 flex-1 grid-cols-1 md:items-start ${showPositions ? 'md:grid-cols-[2fr_1fr_1fr]' : 'md:grid-cols-[2fr_1fr_48px]'} gap-6`}>
+        <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950 p-3 md:h-[600px]">
           <ResearchGraph
             key={`${symbol}-${preset}-${showPositions}`}
             symbol={symbol}
@@ -199,7 +199,7 @@ export default function Research() {
           />
         </div>
 
-        <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950 p-3">
+        <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950 p-3 md:h-[601px] md:overflow-y-auto">
           <TradePanel
             symbol={symbol}
             currentPrice={currentPrice}
@@ -212,23 +212,21 @@ export default function Research() {
         </div>
 
         {/* Positions Drawer */}
-        <div className="hidden relative md:flex items-start md:h-full ">
+        <div className="relative hidden md:flex md:h-[600px] md:items-stretch">
           <div
-            className={`overflow-hidden transform transition-transform duration-500 ease-in-out ${
-              showPositions
-                ? 'translate-x-0 opacity-100'
-                : 'translate-x-full opacity-0 pointer-events-none'
+            className={`${showPositions ? 'w-full' : 'w-0'} flex h-full flex-col overflow-hidden transform transition-all duration-300 ease-in-out ${
+              showPositions ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0 pointer-events-none'
             }`}
           >
             <button
               onClick={() => setShowPositions(false)}
-              className="mb-2 flex items-center justify-between px-4 py-2 rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 transition"
+              className="mb-4 flex items-center justify-between px-4 py-2 rounded-lg border border-slate-800 bg-slate-700 hover:bg-slate-800 transition"
             >
-              <span className="text-sm font-semibold text-slate-300 uppercase">Positions</span>
+              <span className="text-sm font-semibold text-slate-300 uppercase">Positions </span>
               <span className="text-slate-400">→</span>
             </button>
 
-          <div className="w-96 md:h-full max-h-[70vh] overflow-y-auto rounded-lg border border-slate-800 bg-slate-950 p-3">
+          <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-slate-800 bg-slate-950 p-3">
               <Positions
                 selectedSymbol={symbol}
                 refreshKey={positionsRefreshKey}
@@ -239,19 +237,17 @@ export default function Research() {
             </div>
           </div>
 
-          <div
-            className={`flex items-start justify-center transition-all duration-500 ease-in-out ${
-              showPositions ? 'w-0 opacity-0 pointer-events-none' : 'w-12 opacity-100'
-            }`}
-          >
-            <button
-              onClick={() => setShowPositions(true)}
-              className="flex min-h-[585px] flex-col items-center justify-center gap-2 px-2 py-3 rounded-l-lg border border-slate-900 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition"
-            >
-              <span className="text-xs uppercase tracking-wide opacity-70">Positions</span>
-              <span className="text-lg">←</span>
-            </button>
-          </div>
+          {!showPositions && (
+            <div className="hidden md:flex h-full items-start justify-center w-12">
+              <button
+                onClick={() => setShowPositions(true)}
+                className="flex h-full flex-col items-center justify-center gap-2 px-2 py-3 rounded-l-lg border border-slate-900 bg-slate-700 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
+              >
+                <span className="text-xs uppercase tracking-wide opacity-70">Positions</span>
+                <span className="text-lg">←</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -21,10 +21,10 @@ export default function Portfolio() {
 
   return (
     <div className="p-6 mx-auto bg-black">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-screen">
 
         {/* Column 1: Positions */}
-        <div className="overflow-y-auto rounded-lg p-3">
+        <div className="rounded-lg p-3 lg:overflow-y-auto">
           <Positions
             selectedSymbol={selectedSymbol}
             onSelect={(symbol) => {
@@ -37,7 +37,7 @@ export default function Portfolio() {
 
         {/* Column 2: Trade */}
         {positionsCount > 0 && (
-          <div className="p-3 rounded-lg lg:sticky lg:top-20 lg:self-start">
+          <div className="p-3 rounded-lg lg:sticky lg:top-32 lg:self-start">
             <TradePanel
               symbol={selectedSymbol ?? undefined}
               currentPrice={selectedPrice}

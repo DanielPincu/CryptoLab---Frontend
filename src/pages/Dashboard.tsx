@@ -4,10 +4,7 @@ import LivePrices from '../components/LivePrices'
 import Positions from '../components/Positions'
 import PortfolioSummary from '../components/PortfolioSummary'
 import { loadAccountIntoStore } from '../state/storeLoaders'
-import { useAccountStore } from '../state/useAccountStore'
 import { useWsPrices } from '../state/useWsPrices'
-import { usePrecisionStore } from '../state/usePrecisionStore'
-import { money8 } from '../utils/numberFormat'
 
 
 export default function Dashboard() {
@@ -26,8 +23,6 @@ export default function Dashboard() {
   })
 
   const ws = useWsPrices()
-  const accountCash = useAccountStore((state) => state.account?.cashBalance ?? 0)
-  const precision = usePrecisionStore((state) => state.precision)
 
   const selectedPrice = selectedSymbol
     ? ws.prices?.[selectedSymbol]?.price
@@ -52,7 +47,7 @@ export default function Dashboard() {
   if (error) return <div className="p-6 text-rose-400">{error}</div>
 
   return (
-    <div className="p-6 mx-auto space-y-6 [scrollbar-gutter:stable]">
+    <div className="p-5 mx-auto space-y-6 [scrollbar-gutter:stable]">
 
       {/* Portfolio Summary */}
       <div className="w-full">
@@ -91,13 +86,8 @@ export default function Dashboard() {
         </div>
 
         {/* Column 2: Trade Panel */}
-        <div className="w-full relative">
-          <div className="mb-1 p-3 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between">
-            <div className="text-xs text-slate-400">Buying Power</div>
-            <div className="text-lg font-semibold text-emerald-400">
-              {money8(accountCash, precision)}
-            </div>
-          </div>
+        <div className="w-full relative md:sticky md:top-32 self-start">
+          
 
           <div className='rounded-lg border border-slate-800 bg-slate-950 p-3'>
             <TradePanel
@@ -112,9 +102,9 @@ export default function Dashboard() {
         </div>
 
         {/* Column 3: Positions Drawer / Handle */}
-        <div className="relative flex items-start">
+        <div className="hidden md:flex relative items-start md:h-[600px] md:sticky md:top-32 self-start">
           <div
-            className={`${showPositions ? 'w-full' : 'w-0'} overflow-hidden transform transition-all duration-300 ease-in-out ${
+            className={`${showPositions ? 'w-full' : 'w-0'} flex h-full flex-col overflow-hidden transform transition-all duration-300 ease-in-out ${
               showPositions ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0 pointer-events-none'
             }`}
           >
@@ -126,7 +116,7 @@ export default function Dashboard() {
               <span className="text-slate-400">→</span>
             </button>
 
-            <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-slate-800 bg-slate-950 p-3">
+            <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-slate-800 bg-slate-950 p-3">
               <Positions
                 selectedSymbol={selectedSymbol}
                 onSelect={(symbol) => {
@@ -138,10 +128,10 @@ export default function Dashboard() {
           </div>
 
           {!showPositions && (
-            <div className="hidden md:flex items-start justify-center w-12">
+            <div className="hidden md:flex h-full items-start justify-center w-12">
               <button
                 onClick={() => setShowPositions(true)}
-                className="flex min-h-[670px] flex-col items-center justify-center gap-2 px-2 py-3 rounded-l-lg border border-slate-900 bg-slate-700 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
+                className="flex h-full flex-col items-center justify-center gap-2 px-2 py-3 rounded-l-lg border border-slate-900 bg-slate-700 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
               >
                 <span className="text-xs uppercase tracking-wide opacity-70">Positions</span>
                 <span className="text-lg">←</span>

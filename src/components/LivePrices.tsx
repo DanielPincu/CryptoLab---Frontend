@@ -93,7 +93,7 @@ export default function LivePrices({ selectedSymbol, onSelect }: Props) {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <h1 className="text-xl font-semibold">Live Prices</h1>
         <button
           onClick={resetFavorites}
