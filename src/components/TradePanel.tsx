@@ -27,8 +27,15 @@ export default function TradePanel({
     noSymbol
   } = useTradePanel(symbol, currentPrice, availableCash, onSuccess)
 
+  const submitDisabled =
+    noSymbol ||
+    loading ||
+    insufficientCash ||
+    insufficientPosition ||
+    (side === 'SELL' && qtyOwned <= 0)
+
   return (
-    <div className="p-4 mb-20 bg-gray-900 rounded-lg text-white">
+    <div className="p-4 h-[575px] bg-gray-900 rounded-lg text-white">
       <h1 className="text-xl font-semibold mb-4">Trade</h1>
 
       <div className="mb-4 p-2 rounded bg-gray-800 border border-gray-700 text-sm">
@@ -178,16 +185,16 @@ export default function TradePanel({
       <button
         onClick={handleSubmit}
         data-testid="trade-submit"
-        disabled={
-          noSymbol ||
-          loading ||
-          insufficientCash ||
-          insufficientPosition ||
-          (side === 'SELL' && qtyOwned <= 0)
-        }
-        className={`w-full p-2 rounded ${
-          side === 'BUY' ? 'bg-green-700' : 'bg-red-700'
-        } ${(side === 'SELL' && qtyOwned <= 0) || noSymbol
+        disabled={submitDisabled}
+        className={`w-full p-2 rounded font-semibold transition-all duration-200 ease-out ${
+          side === 'BUY' && !submitDisabled
+            ? 'bg-green-700 hover:bg-green-600 hover:shadow-lg hover:shadow-green-500/30 hover:-translate-y-0.5 active:translate-y-0 active:shadow-green-500/20'
+            : side === 'BUY'
+              ? 'bg-green-700'
+              : !submitDisabled
+                ? 'bg-red-700 hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/30 hover:-translate-y-0.5 active:translate-y-0 active:shadow-red-500/20'
+              : 'bg-red-700'
+        } ${submitDisabled
             ? 'opacity-50 cursor-not-allowed'
             : ''}`}
       >
