@@ -67,7 +67,7 @@ export default function TransactionsTable() {
   const [cursor, setCursor] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [sideFilter, setSideFilter] = useState<'ALL' | 'BUY' | 'SELL' | 'REWARD'>('ALL')
-  const [sortField, setSortField] = useState<SortField>('PNL')
+  const [sortField, setSortField] = useState<SortField>('EXECUTED')
   const [sortDirection, setSortDirection] = useState<SortDirection>('DESC')
   const precision = usePrecisionStore((state) => state.precision)
 

@@ -125,7 +125,7 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="w-fit rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
+                <div className="w-fit min-w-28 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
                   <div className="text-xs uppercase tracking-wide text-slate-500">Live feed</div>
                   <div className="mt-1 text-sm font-semibold text-emerald-300">
                     {priceStatus === 'open' ? 'Streaming' : 'Syncing'}
