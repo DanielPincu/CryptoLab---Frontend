@@ -22,7 +22,6 @@ export default function LivePrices({ selectedSymbol, onSelect }: Props) {
     error,
     updating,
     removeFavorite,
-    resetFavorites
   } = useLivePrices()
 
   const [warning, setWarning] = useState<string | null>(null)
@@ -95,13 +94,7 @@ export default function LivePrices({ selectedSymbol, onSelect }: Props) {
 
       <div className="flex items-center justify-between mb-3">
         <h1 className="text-xl font-semibold">Live Prices</h1>
-        <button
-          onClick={resetFavorites}
-          disabled={updating}
-          className="px-3 py-1.5 text-xs rounded bg-amber-600 text-white disabled:opacity-50"
-        >
-          Reset
-        </button>
+        
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
