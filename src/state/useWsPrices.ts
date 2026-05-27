@@ -120,7 +120,10 @@ async function connectSharedSocket() {
     const { setPrice } = usePriceStore.getState()
 
     ws.onopen = () => {
-      if (currentVersion === connectionVersion) setSharedStatus('open')
+      if (currentVersion !== connectionVersion) return
+
+      setSharedStatus('open')
+      ws.send(JSON.stringify({ type: 'set', symbols }))
     }
 
     ws.onmessage = (ev) => {
@@ -165,6 +168,11 @@ export function useWsPrices(extraSymbols: string[] = []) {
   const [status, setStatus] = useState<WsStatus>(activeStatus)
   const idRef = useRef<number | null>(null)
   const prices = usePriceStore((state) => state.prices)
+  const accountSymbolsKey = useAccountStore((state) => (state.account?.favorites ?? [])
+    .map(normalizeSymbol)
+    .filter(Boolean)
+    .sort()
+    .join(','))
   const extraSymbolsKey = extraSymbols
     .map(normalizeSymbol)
     .filter(Boolean)
@@ -190,7 +198,7 @@ export function useWsPrices(extraSymbols: string[] = []) {
         void connectSharedSocket()
       }
     }
-  }, [extraSymbolsKey])
+  }, [accountSymbolsKey, extraSymbolsKey])
 
   return { status, prices: prices as Record<string, WsPrice> }
 }

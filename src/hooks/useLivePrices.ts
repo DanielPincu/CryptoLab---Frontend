@@ -40,9 +40,19 @@ export function useLivePrices() {
 
   // merged + filtered rows
   const rows = useMemo(() => {
-    return ticks
-      .filter((t) => favorites.length === 0 || favorites.includes(t.symbol))
-      .map((t) => {
+    const tickBySymbol = new Map(ticks.map((tick) => [tick.symbol, tick]))
+    const symbols = favorites.length > 0
+      ? favorites
+      : ticks.map((tick) => tick.symbol)
+
+    return symbols
+      .map((symbol) => {
+        const t = tickBySymbol.get(symbol) ?? {
+          symbol,
+          price: null,
+          ts: null,
+          source: null
+        }
         const live = livePriceMap[t.symbol]
 
         return {
